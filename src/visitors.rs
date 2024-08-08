@@ -164,24 +164,100 @@ pub mod visitors {
         }
     }
 
+    #[derive(Debug, PartialEq, PartialOrd)]
+    pub enum Value {
+        Number(f64),
+        Boolean(bool),
+        Nil,
+    }
+
+    impl std::ops::Add for Value {
+        type Output = Self;
+
+        fn add(self, other: Self) -> Self {
+            match (self, other) {
+                (Value::Number(left), Value::Number(right)) => Value::Number(left + right),
+                _ => panic!("Operands must be numbers"),
+            }
+        }
+    }
+
+    impl std::ops::Sub for Value {
+        type Output = Self;
+
+        fn sub(self, other: Self) -> Self {
+            match (self, other) {
+                (Value::Number(left), Value::Number(right)) => Value::Number(left - right),
+                _ => panic!("Operands must be numbers"),
+            }
+        }
+    }
+
+    impl std::ops::Mul for Value {
+        type Output = Self;
+
+        fn mul(self, other: Self) -> Self {
+            match (self, other) {
+                (Value::Number(left), Value::Number(right)) => Value::Number(left * right),
+                _ => panic!("Operands must be numbers"),
+            }
+        }
+    }
+
+    impl std::ops::Div for Value {
+        type Output = Self;
+
+        fn div(self, other: Self) -> Self {
+            match (self, other) {
+                (Value::Number(left), Value::Number(right)) => Value::Number(left / right),
+                _ => panic!("Operands must be numbers"),
+            }
+        }
+    }
+
+    impl std::ops::Neg for Value {
+        type Output = Self;
+
+        fn neg(self) -> Self {
+            match self {
+                Value::Number(right) => Value::Number(-right),
+                _ => panic!("Unary operator - can only be applied to numbers"),
+            }
+        }
+    }
+
+    impl std::ops::Not for Value {
+        type Output = Self;
+
+        fn not(self) -> Self {
+            match self {
+                Value::Boolean(right) => Value::Boolean(!right),
+                _ => panic!("Unary operator ! can only be applied to booleans"),
+            }
+        }
+    }
+
+    // impl std::cmp::PartialEq for Value {
+    //     fn eq(&self, other: &Self) -> bool {
+    //         match (self, other) {
+    //             (Value::Number(left), Value::Number(right)) => left == right,
+    //             (Value::Boolean(left), Value::Boolean(right)) => left == right,
+    //             (Value::Nil, Value::Nil) => true,
+    //             _ => false,
+    //         }
+    //     }
+    // }
+
     impl Visitor for Interpreter {
-        type Output = f64;
+        type Output = Value;
 
         fn visit_equality(&self, equality: &Equality) -> Self::Output {
             match equality.operator.token_type {
                 TokenType::EqualEqual => {
-                    if equality.left.accept(self) == equality.right.accept(self) {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
+                    Value::Boolean(equality.left.accept(self) == equality.right.accept(self))
                 }
                 TokenType::BangEqual => {
-                    if equality.left.accept(self) != equality.right.accept(self) {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
+                    Value::Boolean(equality.left.accept(self) != equality.right.accept(self))
                 }
                 _ => panic!("Unexpected token type"),
             }
@@ -190,32 +266,16 @@ pub mod visitors {
         fn visit_comparison(&self, comparison: &Comparison) -> Self::Output {
             match comparison.operator.token_type {
                 TokenType::Greater => {
-                    if comparison.left.accept(self) > comparison.right.accept(self) {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
+                    Value::Boolean(comparison.left.accept(self) > comparison.right.accept(self))
                 }
                 TokenType::GreaterEqual => {
-                    if comparison.left.accept(self) >= comparison.right.accept(self) {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
+                    Value::Boolean(comparison.left.accept(self) >= comparison.right.accept(self))
                 }
                 TokenType::Less => {
-                    if comparison.left.accept(self) < comparison.right.accept(self) {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
+                    Value::Boolean(comparison.left.accept(self) < comparison.right.accept(self))
                 }
                 TokenType::LessEqual => {
-                    if comparison.left.accept(self) <= comparison.right.accept(self) {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
+                    Value::Boolean(comparison.left.accept(self) <= comparison.right.accept(self))
                 }
                 _ => panic!("Unexpected token type"),
             }
@@ -241,11 +301,7 @@ pub mod visitors {
             match unary.operator.token_type {
                 TokenType::Minus => -unary.right.accept(self),
                 TokenType::Bang => {
-                    if unary.right.accept(self) == 0.0 {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
+                    Value::Boolean(unary.right.accept(self) == Value::Boolean(false))
                 }
                 _ => panic!("Unexpected token type"),
             }
@@ -253,15 +309,9 @@ pub mod visitors {
 
         fn visit_primary(&self, primary: &Primary) -> Self::Output {
             match primary.value.token_type {
-                TokenType::Number => primary.value.lexeme.parse().unwrap(),
-                TokenType::Boolean => {
-                    if primary.value.lexeme == "true" {
-                        return 1.0;
-                    } else {
-                        return 0.0;
-                    }
-                }
-                TokenType::Nil => 0.0,
+                TokenType::Number => Value::Number(primary.value.lexeme.parse().unwrap()),
+                TokenType::Boolean => Value::Boolean(primary.value.lexeme == "true"),
+                TokenType::Nil => Value::Nil,
                 _ => panic!("Unexpected token type"),
             }
         }
