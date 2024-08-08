@@ -9,10 +9,11 @@ pub mod lexer {
     }
 
     impl Lexer {
-        const KEYWORDS: [(&'static str, TokenType); 3] = [
+        const KEYWORDS: [(&'static str, TokenType); 4] = [
             ("true", TokenType::Boolean),
             ("false", TokenType::Boolean),
             ("nil", TokenType::Nil),
+            ("print", TokenType::Print),
         ];
 
         pub fn new(input: String) -> Lexer {
@@ -32,7 +33,7 @@ pub mod lexer {
                 }
 
                 match self.peek() {
-                    ' ' | '\r' | '\t' | ';' => {
+                    ' ' | '\r' | '\t' => {
                         self.advance();
                     }
                     '\n' => {
@@ -132,6 +133,14 @@ pub mod lexer {
                     }
                     '"' => {
                         self.handle_string();
+                    }
+                    ',' => {
+                        let c = self.advance().to_string();
+                        self.add_token(TokenType::Comma, c);
+                    }
+                    ';' => {
+                        let c = self.advance().to_string();
+                        self.add_token(TokenType::Semicolon, c);
                     }
                     _ => {
                         if self.peek().is_ascii_alphabetic() {

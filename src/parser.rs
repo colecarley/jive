@@ -28,8 +28,47 @@ pub mod parser {
             }
         }
 
-        pub fn parse(&mut self) -> Expression {
-            return self.expression();
+        pub fn parse(&mut self) -> Vec<Statement> {
+            let mut statements = vec![];
+
+            while !self.is_at_end() {
+                statements.push(self.statement());
+            }
+
+            return statements;
+        }
+
+        fn statement(&mut self) -> Statement {
+            if self.peek().token_type == TokenType::Print {
+                return self.print_statement();
+            } else {
+                return self.expression_statement();
+            }
+        }
+
+        fn expression_statement(&mut self) -> Statement {
+            let expression = self.expression();
+
+            if self.peek().token_type != TokenType::Semicolon {
+                panic!("Expected ';' after expression");
+            }
+
+            self.advance();
+
+            return Statement::ExpressionStatement(ExpressionStatement { expression });
+        }
+
+        fn print_statement(&mut self) -> Statement {
+            self.advance();
+            let expression = self.expression();
+
+            if self.peek().token_type != TokenType::Semicolon {
+                panic!("Expected ';' after expression");
+            }
+
+            self.advance();
+
+            return Statement::PrintStatement(PrintStatement { expression });
         }
 
         fn expression(&mut self) -> Expression {
@@ -141,6 +180,10 @@ pub mod parser {
 
         fn peek(&self) -> Token {
             self.tokens[self.position].clone()
+        }
+
+        fn is_at_end(&self) -> bool {
+            self.peek().token_type == TokenType::EOF
         }
     }
 
@@ -289,5 +332,43 @@ pub mod parser {
         Factor(Box<Factor>),
         Unary(Box<Unary>),
         Primary(Box<Primary>),
+    }
+
+    pub struct ExpressionStatement {
+        pub expression: Expression,
+    }
+
+    pub struct PrintStatement {
+        pub expression: Expression,
+    }
+
+    pub enum Statement {
+        ExpressionStatement(ExpressionStatement),
+        PrintStatement(PrintStatement),
+    }
+
+    impl Accept for Statement {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
+            match self {
+                Statement::ExpressionStatement(expression_statement) => {
+                    visitor.visit_expression_statement(expression_statement)
+                }
+                Statement::PrintStatement(print_statement) => {
+                    visitor.visit_print_statement(print_statement)
+                }
+            }
+        }
+    }
+
+    impl Accept for ExpressionStatement {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
+            visitor.visit_expression_statement(self)
+        }
+    }
+
+    impl Accept for PrintStatement {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
+            visitor.visit_print_statement(self)
+        }
     }
 }

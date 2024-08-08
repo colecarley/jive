@@ -4,10 +4,15 @@ pub mod token;
 pub mod visitors;
 
 use lexer::lexer::Lexer;
-use parser::parser::{Accept, Parser};
+use parser::parser::Parser;
 
 fn main() {
-    let mut lexer = Lexer::new("1 + 1 * 2 / 3 * 234.234".to_string());
+    let code = "print 7 * 2 + 3; 
+        "
+    .to_string();
+
+    let mut lexer = Lexer::new(code);
+
     lexer.lex();
     for token in lexer.tokens.clone() {
         println!("{:?}", token);
@@ -15,21 +20,17 @@ fn main() {
 
     let mut parser = Parser::new(lexer.tokens);
 
-    let expression = parser.parse();
+    let statements = parser.parse();
 
     let ast_printer = visitors::visitors::AstPrinter::new();
 
-    let ast_string = expression.accept(&ast_printer);
-
-    println!("{}", ast_string);
+    ast_printer.print(&statements);
 
     let type_checker = visitors::visitors::TypeChecker::new();
 
-    expression.accept(&type_checker);
+    type_checker.check(&statements);
 
     let interpreter = visitors::visitors::Interpreter::new();
 
-    let result = expression.accept(&interpreter);
-
-    println!("{:?}", result);
+    interpreter.evaluate(&statements);
 }

@@ -1,6 +1,9 @@
 pub mod visitors {
     use crate::{
-        parser::parser::{Accept, Comparison, Equality, Factor, Primary, Term, Unary},
+        parser::parser::{
+            Accept, Comparison, Equality, ExpressionStatement, Factor, Primary, PrintStatement,
+            Statement, Term, Unary,
+        },
         token::token::TokenType,
     };
 
@@ -18,6 +21,13 @@ pub mod visitors {
         fn visit_unary(&self, unary: &Unary) -> Self::Output;
 
         fn visit_primary(&self, primary: &Primary) -> Self::Output;
+
+        fn visit_expression_statement(
+            &self,
+            expression_statement: &ExpressionStatement,
+        ) -> Self::Output;
+
+        fn visit_print_statement(&self, print_statement: &PrintStatement) -> Self::Output;
     }
 
     pub struct AstPrinter {}
@@ -25,6 +35,23 @@ pub mod visitors {
     impl AstPrinter {
         pub fn new() -> Self {
             AstPrinter {}
+        }
+
+        pub fn print(&self, statements: &Vec<Statement>) {
+            let mut result = String::new();
+            for statement in statements {
+                match statement {
+                    Statement::ExpressionStatement(expression_statement) => {
+                        result.push_str(&expression_statement.accept(self));
+                    }
+                    Statement::PrintStatement(print_statement) => {
+                        result.push_str(&print_statement.accept(self));
+                    }
+                }
+                result.push('\n');
+            }
+
+            println!("{}", result)
         }
     }
 
@@ -73,6 +100,17 @@ pub mod visitors {
         fn visit_primary(&self, primary: &Primary) -> Self::Output {
             primary.value.lexeme.clone()
         }
+
+        fn visit_expression_statement(
+            &self,
+            expression_statement: &ExpressionStatement,
+        ) -> Self::Output {
+            expression_statement.expression.accept(self)
+        }
+
+        fn visit_print_statement(&self, print_statement: &PrintStatement) -> Self::Output {
+            format!("print ({})", print_statement.expression.accept(self))
+        }
     }
 
     pub struct TypeChecker {}
@@ -80,6 +118,19 @@ pub mod visitors {
     impl TypeChecker {
         pub fn new() -> Self {
             TypeChecker {}
+        }
+
+        pub fn check(&self, statements: &Vec<Statement>) {
+            for statement in statements {
+                match statement {
+                    Statement::ExpressionStatement(expression_statement) => {
+                        expression_statement.accept(self);
+                    }
+                    Statement::PrintStatement(print_statement) => {
+                        print_statement.accept(self);
+                    }
+                }
+            }
         }
     }
 
@@ -154,6 +205,17 @@ pub mod visitors {
         fn visit_primary(&self, primary: &Primary) -> Self::Output {
             primary.value.token_type.clone()
         }
+
+        fn visit_expression_statement(
+            &self,
+            expression_statement: &ExpressionStatement,
+        ) -> Self::Output {
+            expression_statement.expression.accept(self)
+        }
+
+        fn visit_print_statement(&self, print_statement: &PrintStatement) -> Self::Output {
+            print_statement.expression.accept(self)
+        }
     }
 
     pub struct Interpreter {}
@@ -162,12 +224,28 @@ pub mod visitors {
         pub fn new() -> Self {
             Interpreter {}
         }
+
+        pub fn evaluate(&self, statements: &Vec<Statement>) -> Value {
+            for statement in statements {
+                match statement {
+                    Statement::ExpressionStatement(expression_statement) => {
+                        expression_statement.accept(self);
+                    }
+                    Statement::PrintStatement(print_statement) => {
+                        print_statement.accept(self);
+                    }
+                }
+            }
+
+            Value::Nil
+        }
     }
 
     #[derive(Debug, PartialEq, PartialOrd)]
     pub enum Value {
         Number(f64),
         Boolean(bool),
+        String(String),
         Nil,
     }
 
@@ -237,17 +315,6 @@ pub mod visitors {
         }
     }
 
-    // impl std::cmp::PartialEq for Value {
-    //     fn eq(&self, other: &Self) -> bool {
-    //         match (self, other) {
-    //             (Value::Number(left), Value::Number(right)) => left == right,
-    //             (Value::Boolean(left), Value::Boolean(right)) => left == right,
-    //             (Value::Nil, Value::Nil) => true,
-    //             _ => false,
-    //         }
-    //     }
-    // }
-
     impl Visitor for Interpreter {
         type Output = Value;
 
@@ -311,9 +378,31 @@ pub mod visitors {
             match primary.value.token_type {
                 TokenType::Number => Value::Number(primary.value.lexeme.parse().unwrap()),
                 TokenType::Boolean => Value::Boolean(primary.value.lexeme == "true"),
+                TokenType::String => Value::String(primary.value.lexeme.clone()),
                 TokenType::Nil => Value::Nil,
                 _ => panic!("Unexpected token type"),
             }
+        }
+
+        fn visit_expression_statement(
+            &self,
+            expression_statement: &ExpressionStatement,
+        ) -> Self::Output {
+            expression_statement.expression.accept(self)
+        }
+
+        fn visit_print_statement(&self, print_statement: &PrintStatement) -> Self::Output {
+            let value = print_statement.expression.accept(self);
+
+            match value {
+                Value::Number(number) => println!("{}", number),
+                Value::Boolean(boolean) => println!("{}", boolean),
+                Value::String(string) => println!("{}", string),
+                Value::Nil => println!("nil"),
+                _ => panic!("Unexpected value type, {:?}", value),
+            }
+
+            Value::Nil
         }
     }
 }

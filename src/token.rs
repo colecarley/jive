@@ -8,7 +8,17 @@ pub mod token {
 
     #[derive(Debug, Clone, PartialEq)]
     pub enum TokenType {
+        // Literals
         Number,
+        Identifier,
+        String,
+        Boolean,
+        Nil,
+
+        // Keywords
+        Print,
+
+        // Single-character tokens
         Plus,
         Minus,
         Star,
@@ -16,19 +26,21 @@ pub mod token {
         LParen,
         RParen,
         Equal,
-        EqualEqual,
         Bang,
-        BangEqual,
-        Greater,
-        GreaterEqual,
         Less,
+        Greater,
+        Comma,
+        Semicolon,
+
+        // double-character tokens
+        EqualEqual,
+        BangEqual,
+        GreaterEqual,
         LessEqual,
         AndAnd,
         OrOr,
-        Identifier,
-        String,
-        Boolean,
-        Nil,
+
+        // EOF
         EOF,
     }
 }
