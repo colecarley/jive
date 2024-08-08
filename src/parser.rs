@@ -230,47 +230,47 @@ pub mod parser {
     }
 
     pub trait Accept {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output;
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output;
     }
 
     impl Accept for Equality {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
             visitor.visit_equality(self)
         }
     }
 
     impl Accept for Comparison {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
             visitor.visit_comparison(self)
         }
     }
 
     impl Accept for Term {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
             visitor.visit_term(self)
         }
     }
 
     impl Accept for Factor {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
             visitor.visit_factor(self)
         }
     }
 
     impl Accept for Unary {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
             visitor.visit_unary(self)
         }
     }
 
     impl Accept for Primary {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
             visitor.visit_primary(self)
         }
     }
 
     impl Accept for Expression {
-        fn accept<V: Visitor>(&self, visitor: V) -> V::Output {
+        fn accept<V: Visitor>(&self, visitor: &V) -> V::Output {
             match self {
                 Expression::Equality(equality) => equality.accept(visitor),
                 Expression::Comparison(comparison) => comparison.accept(visitor),
