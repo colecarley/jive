@@ -17,6 +17,8 @@ pub mod token {
 
         // Keywords
         Print,
+        Is,
+        Make,
 
         // Single-character tokens
         Plus,

@@ -9,11 +9,12 @@ pub mod lexer {
     }
 
     impl Lexer {
-        const KEYWORDS: [(&'static str, TokenType); 4] = [
+        const KEYWORDS: [(&'static str, TokenType); 5] = [
             ("true", TokenType::Boolean),
             ("false", TokenType::Boolean),
             ("nil", TokenType::Nil),
             ("print", TokenType::Print),
+            ("make", TokenType::Make),
         ];
 
         pub fn new(input: String) -> Lexer {

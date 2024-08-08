@@ -7,30 +7,39 @@ use lexer::lexer::Lexer;
 use parser::parser::Parser;
 
 fn main() {
-    let code = "print 7 * 2 + 3; 
+    let code = "
+        print 7 * 2 + 3; 
+        make x = 3;
+        make y = 4;
+        make z = nil;
+        print y + x;
+        make z;
+        print z;
+        z = 12;
+        print z;
+        make r;
+        r = 4;
+        print r;
+        make foo = 4;
+        print foo;
         "
     .to_string();
 
     let mut lexer = Lexer::new(code);
-
     lexer.lex();
-    for token in lexer.tokens.clone() {
-        println!("{:?}", token);
-    }
+    // for token in lexer.tokens.clone() {
+    //     println!("{:?}", token);
+    // }
 
     let mut parser = Parser::new(lexer.tokens);
-
     let statements = parser.parse();
 
-    let ast_printer = visitors::visitors::AstPrinter::new();
+    // let mut ast_printer = visitors::visitors::AstPrinter::new();
+    // ast_printer.print(&statements);
 
-    ast_printer.print(&statements);
-
-    let type_checker = visitors::visitors::TypeChecker::new();
-
+    let mut type_checker = visitors::visitors::TypeChecker::new();
     type_checker.check(&statements);
 
-    let interpreter = visitors::visitors::Interpreter::new();
-
+    let mut interpreter = visitors::visitors::Interpreter::new();
     interpreter.evaluate(&statements);
 }
