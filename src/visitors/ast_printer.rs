@@ -4,7 +4,7 @@ use crate::parser::{
         Assignment, Call, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
     },
     statement::{
-        Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
+        Block, ExpressionStatement, IfStatement, PrintStatement, Statement, VariableDeclaration,
         WhileStatement,
     },
 };
@@ -19,27 +19,8 @@ impl AstPrinter {
     pub fn print(&mut self, statements: &Vec<Statement>) {
         let mut result = String::new();
         for statement in statements {
-            match statement {
-                Statement::ExpressionStatement(expression_statement) => {
-                    result.push_str(&expression_statement.accept(self));
-                }
-                Statement::PrintStatement(print_statement) => {
-                    result.push_str(&print_statement.accept(self));
-                }
-                Statement::DeclarationStatement(declaration_statement) => {
-                    result.push_str(&declaration_statement.accept(self));
-                }
-                Statement::Block(block) => {
-                    result.push_str(&block.accept(self));
-                }
-                Statement::IfStatement(if_statement) => {
-                    result.push_str(&if_statement.accept(self));
-                }
-                Statement::WhileStatement(while_statement) => {
-                    result.push_str(&while_statement.accept(self));
-                }
-            }
-            result.push('\n');
+            let statement = statement.accept(self);
+            result.push_str(format!("{}\n", statement).as_str());
         }
 
         println!("{}", result)
@@ -111,12 +92,12 @@ impl super::Visitor for AstPrinter {
         format!("print ({})", print_statement.expression.accept(self))
     }
 
-    fn visit_declaration_statement(
+    fn visit_variable_declaration(
         &mut self,
-        declarion_statement: &DeclarationStatement,
+        variable_declaration: &VariableDeclaration,
     ) -> Self::Output {
-        let identifier = declarion_statement.identifier.lexeme.clone();
-        if let Some(expression) = &declarion_statement.expression {
+        let identifier = variable_declaration.identifier.lexeme.clone();
+        if let Some(expression) = &variable_declaration.expression {
             format!("make {} = {}", identifier, expression.accept(self))
         } else {
             format!("make {}", identifier)
@@ -186,6 +167,23 @@ impl super::Visitor for AstPrinter {
                 .map(|arg| arg.accept(self))
                 .collect::<Vec<String>>()
                 .join(", ")
+        )
+    }
+
+    fn visit_function_declaration(
+        &mut self,
+        function_declaration: &crate::parser::statement::FunctionDeclaration,
+    ) -> Self::Output {
+        format!(
+            "funk {} ({}) {}",
+            function_declaration.identifier.lexeme,
+            function_declaration
+                .parameters
+                .iter()
+                .map(|param| param.lexeme.clone())
+                .collect::<Vec<String>>()
+                .join(","),
+            function_declaration.body.accept(self),
         )
     }
 }

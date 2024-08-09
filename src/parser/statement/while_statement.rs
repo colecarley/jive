@@ -5,6 +5,7 @@ use crate::{
 
 use super::Statement;
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct WhileStatement {
     pub condition: Expression,
     pub body: Statement,

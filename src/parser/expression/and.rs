@@ -3,6 +3,7 @@ use crate::{
     visitors::Visitor,
 };
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct And {
     pub left: Expression,
     pub right: Expression,

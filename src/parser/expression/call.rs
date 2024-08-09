@@ -1,6 +1,7 @@
 use super::Expression;
 use crate::{parser::accept::Accept, visitors::Visitor};
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Call {
     pub identifier: Expression,
     pub arguments: Vec<Expression>,

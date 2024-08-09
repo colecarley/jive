@@ -116,6 +116,21 @@ fn main() {
         print clock();
 
         println(\"Hello there \", 3);
+
+        make foo = 3;
+
+        funk foo(x, y)  {
+            println(\"Inside foo\", x, y);
+        }
+
+        foo(3, 4);
+
+        funk get_input() {
+            input();
+        }
+
+        print get_input();
+
         "
     .to_string();
 

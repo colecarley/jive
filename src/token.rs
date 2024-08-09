@@ -1,17 +1,16 @@
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
     pub line: u32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum TokenType {
     // Literals
     Number,
     Identifier,
     String,
-    EscapedString,
     Boolean,
     Nil,
 
@@ -23,6 +22,7 @@ pub enum TokenType {
     And,
     Or,
     While,
+    Funk,
 
     // Single-character tokens
     Plus,

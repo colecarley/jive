@@ -1,7 +1,36 @@
+use crate::{
+    parser::{accept::Accept, statement::FunctionDeclaration},
+    visitors::environment::Environment,
+};
+
 use super::{value::Value, Interpreter};
 
 pub trait Callable {
     fn call(&self, interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value;
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct Function {
+    pub arity: usize,
+    pub declaration: FunctionDeclaration,
+}
+
+impl Callable for Function {
+    fn call(&self, interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+        let mut new_environment = Environment::new();
+        new_environment.enclose(&Box::new(interpreter.environment.clone()));
+
+        for (parameter, argument) in self.declaration.parameters.iter().zip(arguments.iter()) {
+            new_environment.declare(parameter.lexeme.clone(), argument.clone());
+        }
+
+        interpreter.environment = new_environment.clone();
+        let result = self.declaration.body.accept(interpreter);
+
+        interpreter.environment = *new_environment.get_enclosing();
+
+        result
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -43,6 +72,7 @@ pub fn println(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
             Value::Boolean(boolean) => print!("{}", boolean),
             Value::String(string) => print!("{}", string),
             Value::BuiltIn(callable) => print!("{:?}", callable),
+            Value::Function(function) => print!("{:?}", function),
             Value::Nil => println!("nil"),
         }
     }

@@ -3,6 +3,7 @@ use crate::{
     visitors::Visitor,
 };
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct ExpressionStatement {
     pub expression: Expression,
 }

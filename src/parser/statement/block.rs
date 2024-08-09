@@ -2,6 +2,7 @@ use crate::{parser::accept::Accept, visitors::Visitor};
 
 use super::Statement;
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Block {
     pub statements: Vec<Statement>,
 }

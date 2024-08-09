@@ -1,5 +1,6 @@
 use crate::{parser::accept::Accept, token::Token, visitors::Visitor};
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Primary {
     pub value: Token,
 }

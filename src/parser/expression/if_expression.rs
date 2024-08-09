@@ -3,6 +3,7 @@ use crate::{
     visitors::Visitor,
 };
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct IfExpression {
     pub condition: Expression,
     pub then_branch: Expression,

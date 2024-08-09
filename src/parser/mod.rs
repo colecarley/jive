@@ -1,9 +1,13 @@
 /*
-program → statement* EOF ;
-statement → printStatement | declarationStatement | expressionStatement | ifStatement | block | whileStatement ;
+program → declaration* EOF ;
+statement → printStatement | expressionStatement | ifStatement | block | whileStatement ;
+declaration → functionDeclaration | variableDeclaration |  statement ;
+variableDeclaration → "make" IDENTIFIER ( "=" expression )? ";" ;
+functionDeclaration → "funk" function ;
+function → IDENTIFIER "(" parameters? ")" block ;
 whileStatement → "while" expression statement ;
 ifStatement → "if"  expression  '{' statement '}' ( "else" '{' statement '}' )? ;
-block → "{" statement* "}" ;
+block → "{" declaration* "}" ;
 expression → assignment ;
 assignment → identifier "=" assignment | ifExpression ;
 ifExpression → expression "if" expression "else" expression | equality ;
@@ -31,8 +35,8 @@ use expression::{
     Term, Unary,
 };
 use statement::{
-    Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
-    WhileStatement,
+    Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Statement,
+    VariableDeclaration, WhileStatement,
 };
 
 pub struct Parser {
@@ -52,16 +56,23 @@ impl Parser {
         let mut statements = vec![];
 
         while !self.is_at_end() {
-            statements.push(self.statement());
+            statements.push(self.declaration());
         }
 
         return statements;
     }
 
+    fn declaration(&mut self) -> Statement {
+        match self.peek().token_type {
+            TokenType::Make => return self.declaration_statement(),
+            TokenType::Funk => return self.function_declaration(),
+            _ => return self.statement(),
+        }
+    }
+
     fn statement(&mut self) -> Statement {
         match self.peek().token_type {
             TokenType::Print => return self.print_statement(),
-            TokenType::Make => return self.declaration_statement(),
             TokenType::LBrace => return self.block(),
             TokenType::If => return self.if_statement(),
             TokenType::While => return self.while_statement(),
@@ -104,7 +115,7 @@ impl Parser {
         let mut statements = vec![];
 
         while self.peek().token_type != TokenType::RBrace && !self.is_at_end() {
-            statements.push(self.statement());
+            statements.push(self.declaration());
         }
 
         if self.peek().token_type != TokenType::RBrace {
@@ -141,6 +152,43 @@ impl Parser {
         return Statement::PrintStatement(Box::new(PrintStatement { expression }));
     }
 
+    fn function_declaration(&mut self) -> Statement {
+        self.advance();
+
+        let identifier = self.advance();
+
+        if self.peek().token_type != TokenType::LParen {
+            panic!("Expected '(' after function identifier");
+        }
+
+        self.advance();
+
+        let mut parameters = Vec::<Token>::new();
+
+        if self.peek().token_type != TokenType::RParen {
+            parameters.push(self.advance());
+
+            while self.peek().token_type == TokenType::Comma {
+                self.advance();
+                parameters.push(self.advance());
+            }
+        }
+
+        if self.peek().token_type != TokenType::RParen {
+            panic!("Expected ')' after parameters");
+        }
+
+        self.advance();
+
+        let body = self.block();
+
+        return Statement::FunctionDeclaration(Box::new(FunctionDeclaration {
+            identifier,
+            parameters,
+            body,
+        }));
+    }
+
     fn declaration_statement(&mut self) -> Statement {
         self.advance();
 
@@ -148,7 +196,7 @@ impl Parser {
 
         if self.peek().token_type == TokenType::Semicolon {
             self.advance();
-            return Statement::DeclarationStatement(Box::new(DeclarationStatement {
+            return Statement::VariableDeclaration(Box::new(VariableDeclaration {
                 identifier,
                 expression: None,
             }));
@@ -171,7 +219,7 @@ impl Parser {
 
         self.advance();
 
-        return Statement::DeclarationStatement(Box::new(DeclarationStatement {
+        return Statement::VariableDeclaration(Box::new(VariableDeclaration {
             identifier,
             expression: Some(expression),
         }));
@@ -347,7 +395,6 @@ impl Parser {
         let mut arguments = vec![];
 
         if self.peek().token_type != TokenType::RParen {
-            println!("Peek: {:?}", self.peek().token_type);
             arguments.push(self.expression());
 
             while self.peek().token_type == TokenType::Comma {

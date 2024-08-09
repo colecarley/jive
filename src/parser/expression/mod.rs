@@ -26,6 +26,7 @@ use crate::visitors::Visitor;
 
 use super::accept::Accept;
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Expression {
     Equality(Box<Equality>),
     Assignment(Box<Assignment>),

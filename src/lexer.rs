@@ -8,7 +8,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    const KEYWORDS: [(&'static str, TokenType); 10] = [
+    const KEYWORDS: [(&'static str, TokenType); 11] = [
         ("true", TokenType::Boolean),
         ("false", TokenType::Boolean),
         ("nil", TokenType::Nil),
@@ -19,6 +19,7 @@ impl Lexer {
         ("and", TokenType::And),
         ("or", TokenType::Or),
         ("while", TokenType::While),
+        ("funk", TokenType::Funk),
     ];
 
     pub fn new(input: String) -> Lexer {
@@ -163,14 +164,7 @@ impl Lexer {
 
         self.advance();
 
-        self.add_token(
-            if character == '`' {
-                TokenType::EscapedString
-            } else {
-                TokenType::String
-            },
-            value,
-        );
+        self.add_token(TokenType::String, value);
     }
 
     fn handle_number(&mut self) {

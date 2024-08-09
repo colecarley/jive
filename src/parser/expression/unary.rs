@@ -1,6 +1,7 @@
 use super::Expression;
 use crate::{parser::accept::Accept, token::Token, visitors::Visitor};
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Unary {
     pub operator: Token,
     pub right: Expression,

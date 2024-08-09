@@ -6,7 +6,7 @@ use crate::{
             Unary,
         },
         statement::{
-            Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
+            Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement,
             Statement, WhileStatement,
         },
     },
@@ -17,7 +17,7 @@ pub mod callable;
 pub mod value;
 
 use super::environment::Environment;
-use callable::{BuiltIn, Callable};
+use callable::{BuiltIn, Callable, Function};
 use value::Value;
 
 pub struct Interpreter {
@@ -46,26 +46,7 @@ impl Interpreter {
 
     pub fn evaluate(&mut self, statements: &Vec<Statement>) -> Value {
         for statement in statements {
-            match statement {
-                Statement::ExpressionStatement(expression_statement) => {
-                    expression_statement.accept(self);
-                }
-                Statement::PrintStatement(print_statement) => {
-                    print_statement.accept(self);
-                }
-                Statement::DeclarationStatement(declaration_statement) => {
-                    declaration_statement.accept(self);
-                }
-                Statement::Block(block) => {
-                    block.accept(self);
-                }
-                Statement::IfStatement(if_statement) => {
-                    if_statement.accept(self);
-                }
-                Statement::WhileStatement(while_statement) => {
-                    while_statement.accept(self);
-                }
-            }
+            statement.accept(self);
         }
 
         Value::Nil
@@ -163,25 +144,26 @@ impl super::Visitor for Interpreter {
             Value::Boolean(boolean) => println!("{}", boolean),
             Value::String(string) => println!("{}", string),
             Value::BuiltIn(callable) => println!("{:?}", callable),
+            Value::Function(function) => println!("{:?}", function),
             Value::Nil => println!("nil"),
         }
 
         Value::Nil
     }
 
-    fn visit_declaration_statement(
+    fn visit_variable_declaration(
         &mut self,
-        declaration_statement: &DeclarationStatement,
+        variable_declaration: &crate::parser::statement::VariableDeclaration,
     ) -> Self::Output {
-        if let Some(expression) = &declaration_statement.expression {
+        if let Some(expression) = &variable_declaration.expression {
             let value = expression.accept(self);
             self.environment
-                .declare(declaration_statement.identifier.lexeme.clone(), value);
+                .declare(variable_declaration.identifier.lexeme.clone(), value);
 
             return Value::Nil;
         }
         self.environment
-            .declare(declaration_statement.identifier.lexeme.clone(), Value::Nil);
+            .declare(variable_declaration.identifier.lexeme.clone(), Value::Nil);
 
         Value::Nil
     }
@@ -270,7 +252,26 @@ impl super::Visitor for Interpreter {
 
                 callable.call(self, arguments)
             }
-            _ => panic!("Can only call functions and classes"),
+            Value::Function(function) => function.call(self, arguments),
+            _ => panic!("Can only call functions"),
         }
+    }
+
+    fn visit_function_declaration(
+        &mut self,
+        function_declaration: &FunctionDeclaration,
+    ) -> Self::Output {
+        let identifier = function_declaration.identifier.lexeme.clone();
+
+        let function = Function {
+            declaration: function_declaration.clone(),
+            arity: function_declaration.parameters.len(),
+        };
+
+        let value = Value::Function(function);
+
+        self.environment.declare(identifier, value);
+
+        Value::Nil
     }
 }

@@ -1,4 +1,4 @@
-use super::callable::BuiltIn;
+use super::callable::{BuiltIn, Function};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
@@ -6,6 +6,7 @@ pub enum Value {
     Boolean(bool),
     String(String),
     BuiltIn(BuiltIn),
+    Function(Function),
     Nil,
 }
 
@@ -82,6 +83,7 @@ impl ToString for Value {
             Value::Boolean(boolean) => boolean.to_string(),
             Value::String(string) => string.clone(),
             Value::BuiltIn(callable) => format!("{:?}", callable),
+            Value::Function(function) => format!("{:?}", function),
             Value::Nil => "nil".to_string(),
         }
     }

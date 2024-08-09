@@ -5,6 +5,7 @@ use crate::{
 
 use super::Statement;
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct IfStatement {
     pub condition: Expression,
     pub then_branch: Box<Statement>,

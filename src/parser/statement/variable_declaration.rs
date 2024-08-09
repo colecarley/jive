@@ -4,13 +4,14 @@ use crate::{
     visitors::Visitor,
 };
 
-pub struct DeclarationStatement {
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct VariableDeclaration {
     pub identifier: Token,
     pub expression: Option<Expression>,
 }
 
-impl Accept for DeclarationStatement {
+impl Accept for VariableDeclaration {
     fn accept<V: Visitor>(&self, visitor: &mut V) -> V::Output {
-        visitor.visit_declaration_statement(self)
+        visitor.visit_variable_declaration(self)
     }
 }

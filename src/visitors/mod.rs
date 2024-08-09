@@ -3,8 +3,8 @@ use crate::parser::{
         And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
     },
     statement::{
-        Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
-        WhileStatement,
+        Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement,
+        VariableDeclaration, WhileStatement,
     },
 };
 
@@ -37,9 +37,9 @@ pub trait Visitor {
 
     fn visit_print_statement(&mut self, print_statement: &PrintStatement) -> Self::Output;
 
-    fn visit_declaration_statement(
+    fn visit_variable_declaration(
         &mut self,
-        declarion_statement: &DeclarationStatement,
+        variable_declaration: &VariableDeclaration,
     ) -> Self::Output;
 
     fn visit_block(&mut self, block: &Block) -> Self::Output;
@@ -55,4 +55,9 @@ pub trait Visitor {
     fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output;
 
     fn visit_call(&mut self, call: &Call) -> Self::Output;
+
+    fn visit_function_declaration(
+        &mut self,
+        function_declaration: &FunctionDeclaration,
+    ) -> Self::Output;
 }
