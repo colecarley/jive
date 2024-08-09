@@ -346,10 +346,6 @@ impl Parser {
         self.tokens[self.position - 1].clone()
     }
 
-    fn peek_previous(&self) -> Token {
-        self.tokens[self.position - 1].clone()
-    }
-
     fn peek(&self) -> Token {
         self.tokens[self.position].clone()
     }
