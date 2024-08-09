@@ -34,33 +34,30 @@ fn main() {
         print \"Outside block\";
         print x + y;
 
-        if true {
+        if true 
             print \"Inside if\";
-        } else {
+        else 
             print \"Inside else\";
-        }
+        
 
-        if false {
+        if false
             print \"Inside if\";
-        } else {
+        else 
             print \"Inside else\";
-        }
+        
 
-        if 1 < 2 {
+        if 1 < 2
             print \"Inside if\";
-        } else {
+        else 
             print \"Inside else\";
-        }
 
-        if 1 > 2 {
+        if 1 > 2 
             print \"Inside if\";
-        } else {
+        else 
             print \"Inside else\";
-        }
 
-        if true {
-            print \"Inside if\";
-        }
+        if true print \"Inside if\";
+        
 
         print \"Outside if\";
 

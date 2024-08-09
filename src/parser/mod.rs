@@ -65,21 +65,11 @@ impl Parser {
         let condition = self.expression();
 
         let then_branch = self.statement();
-        let then_branch = if let Statement::Block(block) = then_branch {
-            *block
-        } else {
-            panic!("Expected block after if condition");
-        };
 
         let else_branch = if self.peek().token_type == TokenType::Else {
             self.advance();
 
             let else_branch = self.statement();
-            let else_branch = if let Statement::Block(block) = else_branch {
-                *block
-            } else {
-                panic!("Expected block after else condition");
-            };
 
             Some(Box::new(else_branch))
         } else {

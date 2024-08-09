@@ -3,12 +3,12 @@ use crate::{
     visitors::Visitor,
 };
 
-use super::Block;
+use super::Statement;
 
 pub struct IfStatement {
     pub condition: Expression,
-    pub then_branch: Box<Block>,
-    pub else_branch: Option<Box<Block>>,
+    pub then_branch: Box<Statement>,
+    pub else_branch: Option<Box<Statement>>,
 }
 
 impl Accept for IfStatement {
