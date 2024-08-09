@@ -1,10 +1,10 @@
-pub mod lexer;
-pub mod parser;
-pub mod token;
-pub mod visitors;
+mod lexer;
+mod parser;
+mod token;
+mod visitors;
 
-use lexer::lexer::Lexer;
-use parser::parser::Parser;
+use lexer::Lexer;
+use parser::Parser;
 
 fn main() {
     let code = "
@@ -22,6 +22,8 @@ fn main() {
         print r;
         make foo = 4;
         print foo;
+        make bar;
+        print bar;
         "
     .to_string();
 
@@ -34,12 +36,12 @@ fn main() {
     let mut parser = Parser::new(lexer.tokens);
     let statements = parser.parse();
 
-    // let mut ast_printer = visitors::visitors::AstPrinter::new();
-    // ast_printer.print(&statements);
+    let mut ast_printer = visitors::ast_printer::AstPrinter::new();
+    ast_printer.print(&statements);
 
-    let mut type_checker = visitors::visitors::TypeChecker::new();
+    let mut type_checker = visitors::type_checker::TypeChecker::new();
     type_checker.check(&statements);
 
-    let mut interpreter = visitors::visitors::Interpreter::new();
+    let mut interpreter = visitors::interpreter::Interpreter::new();
     interpreter.evaluate(&statements);
 }
