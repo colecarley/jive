@@ -1,7 +1,7 @@
 use crate::{
     parser::{
         accept::Accept,
-        expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
+        expression::{Assignment, Comparison, Cond, Equality, Factor, Primary, Term, Unary},
         statement::{
             Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
             Statement,
@@ -189,5 +189,13 @@ impl super::Visitor for Interpreter {
         }
 
         Value::Nil
+    }
+
+    fn visit_cond(&mut self, cond: &Cond) -> Self::Output {
+        if cond.condition.accept(self) == Value::Boolean(true) {
+            return cond.then_branch.accept(self);
+        }
+
+        cond.else_branch.accept(self)
     }
 }

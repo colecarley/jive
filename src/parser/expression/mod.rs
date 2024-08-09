@@ -1,5 +1,6 @@
 pub mod assignment;
 pub mod comparison;
+pub mod cond;
 pub mod equality;
 pub mod factor;
 pub mod primary;
@@ -8,6 +9,7 @@ pub mod unary;
 
 pub use assignment::Assignment;
 pub use comparison::Comparison;
+pub use cond::Cond;
 pub use equality::Equality;
 pub use factor::Factor;
 pub use primary::Primary;
@@ -21,6 +23,7 @@ use super::accept::Accept;
 pub enum Expression {
     Equality(Box<Equality>),
     Assignment(Box<Assignment>),
+    Cond(Box<Cond>),
     Comparison(Box<Comparison>),
     Term(Box<Term>),
     Factor(Box<Factor>),
@@ -38,6 +41,7 @@ impl Accept for Expression {
             Expression::Factor(factor) => factor.accept(visitor),
             Expression::Unary(unary) => unary.accept(visitor),
             Expression::Primary(primary) => primary.accept(visitor),
+            Expression::Cond(cond) => cond.accept(visitor),
         }
     }
 }

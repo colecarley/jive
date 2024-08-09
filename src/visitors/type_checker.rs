@@ -211,4 +211,17 @@ impl super::Visitor for TypeChecker {
 
         TokenType::Nil
     }
+
+    fn visit_cond(&mut self, cond: &crate::parser::expression::Cond) -> Self::Output {
+        let condition_type = cond.condition.accept(self);
+        if condition_type != TokenType::Boolean {
+            panic!("Condition must be a boolean");
+        }
+
+        // it doesn't matter if then_branch and else_branch are of the same type, but check the sub-expressions
+        cond.then_branch.accept(self);
+        cond.else_branch.accept(self);
+
+        TokenType::Nil
+    }
 }

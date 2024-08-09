@@ -1,5 +1,5 @@
 use crate::parser::{
-    expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
+    expression::{Assignment, Comparison, Cond, Equality, Factor, Primary, Term, Unary},
     statement::{Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement},
 };
 
@@ -40,4 +40,6 @@ pub trait Visitor {
     fn visit_block(&mut self, block: &Block) -> Self::Output;
 
     fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output;
+
+    fn visit_cond(&mut self, cond: &Cond) -> Self::Output;
 }

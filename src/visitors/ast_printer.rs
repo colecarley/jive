@@ -1,6 +1,6 @@
 use crate::parser::{
     accept::Accept,
-    expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
+    expression::{Assignment, Comparison, Cond, Equality, Factor, Primary, Term, Unary},
     statement::{
         Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
     },
@@ -144,5 +144,14 @@ impl super::Visitor for AstPrinter {
         }
 
         result
+    }
+
+    fn visit_cond(&mut self, cond: &Cond) -> Self::Output {
+        format!(
+            "cond {} {} {}",
+            cond.condition.accept(self),
+            cond.then_branch.accept(self),
+            cond.else_branch.accept(self)
+        )
     }
 }

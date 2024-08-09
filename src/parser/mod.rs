@@ -1,10 +1,11 @@
 /*
 program → statement* EOF ;
 statement → printStatement | declarationStatement | expressionStatement | ifStatement | block ;
-ifStatement → "if"  expression  '{' block '}' ( "else" '{' block '}' )? ;
+ifStatement → "if"  expression  '{' statement '}' ( "else" '{' statement '}' )? ;
 block → "{" statement* "}" ;
 expression → assignment ;
-assignment → identifier "=" assignment | equality ;
+assignment → identifier "=" assignment | cond ;
+cond → "cond" expression expression expression | equality ;
 equality → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term → factor ( ( "-" | "+" ) factor )* ;
@@ -21,7 +22,9 @@ pub mod accept;
 pub mod expression;
 pub mod statement;
 
-use expression::{Assignment, Comparison, Equality, Expression, Factor, Primary, Term, Unary};
+use expression::{
+    Assignment, Comparison, Cond, Equality, Expression, Factor, Primary, Term, Unary,
+};
 use statement::{
     Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
 };
@@ -163,7 +166,7 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Expression {
-        let expression = self.equality();
+        let expression = self.cond();
 
         if self.peek().token_type == TokenType::Equal {
             self.advance();
@@ -182,6 +185,23 @@ impl Parser {
         }
 
         return expression;
+    }
+
+    fn cond(&mut self) -> Expression {
+        if self.peek().token_type == TokenType::Cond {
+            self.advance();
+            let condition = self.expression();
+            let then_branch = self.expression();
+            let else_branch = self.expression();
+
+            return Expression::Cond(Box::new(Cond {
+                condition: condition,
+                then_branch: then_branch,
+                else_branch: else_branch,
+            }));
+        }
+
+        return self.equality();
     }
 
     fn equality(&mut self) -> Expression {

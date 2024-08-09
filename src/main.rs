@@ -79,6 +79,16 @@ fn main() {
             print \"Outside nested if x is\";
             print x;
         }
+
+        make foo = cond true 1 2;
+        print foo;
+        make bar = cond false 1 2;
+        print bar;
+
+
+        make foo = true;
+        make foobar = cond foo 3 + 4 + 5 2;
+        print foobar;
         "
     .to_string();
 
