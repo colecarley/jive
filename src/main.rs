@@ -100,12 +100,10 @@ fn main() {
         print z;
 
         print true and true;
-
         print true and false;
-
         print true or false;
-
         print false or false;
+        print !true;
         "
     .to_string();
 

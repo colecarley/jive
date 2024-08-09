@@ -310,7 +310,7 @@ impl Parser {
             TokenType::Bang | TokenType::Minus => true,
             _ => false,
         } {
-            let operator = self.peek_previous();
+            let operator = self.advance();
             let right = self.unary();
             return Expression::Unary(Box::new(Unary::new(operator, right)));
         } else {

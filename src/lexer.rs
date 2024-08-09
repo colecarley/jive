@@ -80,7 +80,6 @@ impl Lexer {
                     } else {
                         self.add_token(TokenType::Bang, c);
                     }
-                    self.advance();
                 }
                 '=' => {
                     let mut c = self.advance().to_string();
@@ -90,7 +89,6 @@ impl Lexer {
                     } else {
                         self.add_token(TokenType::Equal, c);
                     }
-                    self.advance();
                 }
                 '<' => {
                     let mut c = self.advance().to_string();
@@ -100,7 +98,6 @@ impl Lexer {
                     } else {
                         self.add_token(TokenType::Less, c);
                     }
-                    self.advance();
                 }
                 '>' => {
                     let mut c = self.advance().to_string();
@@ -110,7 +107,6 @@ impl Lexer {
                     } else {
                         self.add_token(TokenType::Greater, c);
                     }
-                    self.advance();
                 }
                 '/' => {
                     if self.peek_next() == '/' {
@@ -121,7 +117,6 @@ impl Lexer {
                         let c = self.advance().to_string();
                         self.add_token(TokenType::Slash, c);
                     }
-                    self.advance();
                 }
                 '"' => {
                     self.handle_string();
