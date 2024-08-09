@@ -1,7 +1,9 @@
 use crate::{
     parser::{
         accept::Accept,
-        expression::{Assignment, Comparison, Cond, Equality, Factor, Primary, Term, Unary},
+        expression::{
+            Assignment, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
+        },
         statement::{
             Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
             Statement,
@@ -57,9 +59,9 @@ impl super::Visitor for Interpreter {
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let value = assignment.value.accept(self);
         self.environment
-            .insert(assignment.identifier.lexeme.clone(), value);
+            .insert(assignment.identifier.lexeme.clone(), value.clone());
 
-        Value::Nil
+        value
     }
 
     fn visit_equality(&mut self, equality: &Equality) -> Self::Output {
@@ -191,11 +193,11 @@ impl super::Visitor for Interpreter {
         Value::Nil
     }
 
-    fn visit_cond(&mut self, cond: &Cond) -> Self::Output {
-        if cond.condition.accept(self) == Value::Boolean(true) {
-            return cond.then_branch.accept(self);
+    fn visit_if_expression(&mut self, if_expression: &IfExpression) -> Self::Output {
+        if if_expression.condition.accept(self) == Value::Boolean(true) {
+            return if_expression.then_branch.accept(self);
         }
 
-        cond.else_branch.accept(self)
+        if_expression.else_branch.accept(self)
     }
 }

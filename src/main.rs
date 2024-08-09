@@ -80,15 +80,24 @@ fn main() {
             print x;
         }
 
-        make foo = cond true 1 2;
         print foo;
-        make bar = cond false 1 2;
         print bar;
 
 
         make foo = true;
-        make foobar = cond foo 3 + 4 + 5 2;
+        make foobar = x if foo else y;
         print foobar;
+
+        make foobar = 1 if false else 2 if true else 3;
+        print \"printing foobar\";
+        print foobar;
+        make x = y = z = 1;
+
+        print \"printing x, y, z\";
+
+        print x;
+        print y;
+        print z;
         "
     .to_string();
 

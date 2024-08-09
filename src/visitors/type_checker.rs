@@ -1,7 +1,9 @@
 use crate::{
     parser::{
         accept::Accept,
-        expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
+        expression::{
+            Assignment, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
+        },
         statement::{
             Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
             Statement,
@@ -52,9 +54,9 @@ impl super::Visitor for TypeChecker {
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let value_type = assignment.value.accept(self);
         self.environment
-            .insert(assignment.identifier.lexeme.clone(), value_type);
+            .insert(assignment.identifier.lexeme.clone(), value_type.clone());
 
-        TokenType::Nil
+        value_type
     }
 
     fn visit_equality(&mut self, equality: &Equality) -> Self::Output {
@@ -212,15 +214,15 @@ impl super::Visitor for TypeChecker {
         TokenType::Nil
     }
 
-    fn visit_cond(&mut self, cond: &crate::parser::expression::Cond) -> Self::Output {
-        let condition_type = cond.condition.accept(self);
+    fn visit_if_expression(&mut self, if_expression: &IfExpression) -> Self::Output {
+        let condition_type = if_expression.condition.accept(self);
         if condition_type != TokenType::Boolean {
             panic!("Condition must be a boolean");
         }
 
         // it doesn't matter if then_branch and else_branch are of the same type, but check the sub-expressions
-        cond.then_branch.accept(self);
-        cond.else_branch.accept(self);
+        if_expression.then_branch.accept(self);
+        if_expression.else_branch.accept(self);
 
         TokenType::Nil
     }

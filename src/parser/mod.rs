@@ -4,8 +4,8 @@ statement → printStatement | declarationStatement | expressionStatement | ifSt
 ifStatement → "if"  expression  '{' statement '}' ( "else" '{' statement '}' )? ;
 block → "{" statement* "}" ;
 expression → assignment ;
-assignment → identifier "=" assignment | cond ;
-cond → "cond" expression expression expression | equality ;
+assignment → identifier "=" assignment | ifExpression ;
+ifExpression → expression "if" expression "else" expression | equality ;
 equality → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term → factor ( ( "-" | "+" ) factor )* ;
@@ -23,7 +23,7 @@ pub mod expression;
 pub mod statement;
 
 use expression::{
-    Assignment, Comparison, Cond, Equality, Expression, Factor, Primary, Term, Unary,
+    Assignment, Comparison, Equality, Expression, Factor, IfExpression, Primary, Term, Unary,
 };
 use statement::{
     Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
@@ -150,7 +150,10 @@ impl Parser {
         let expression = self.expression();
 
         if self.peek().token_type != TokenType::Semicolon {
-            panic!("Expected ';' after expression");
+            panic!(
+                "Expected ';' after expression, found {:?}",
+                self.peek().token_type
+            );
         }
 
         self.advance();
@@ -166,42 +169,51 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Expression {
-        let expression = self.cond();
+        let first = self.if_expression();
 
-        if self.peek().token_type == TokenType::Equal {
+        while self.peek().token_type == TokenType::Equal {
             self.advance();
-            let value = self.assignment();
+            let second = self.assignment();
 
-            if let Expression::Primary(primary) = expression {
-                if primary.value.token_type == TokenType::Identifier {
+            match first {
+                Expression::Primary(primary) => {
                     return Expression::Assignment(Box::new(Assignment {
                         identifier: primary.value,
-                        value,
+                        value: second,
                     }));
                 }
+                _ => {
+                    panic!("Invalid assignment target");
+                }
             }
-
-            panic!("Invalid assignment target");
         }
 
-        return expression;
+        first
     }
 
-    fn cond(&mut self) -> Expression {
-        if self.peek().token_type == TokenType::Cond {
-            self.advance();
-            let condition = self.expression();
-            let then_branch = self.expression();
-            let else_branch = self.expression();
+    fn if_expression(&mut self) -> Expression {
+        let mut first = self.equality();
 
-            return Expression::Cond(Box::new(Cond {
+        while self.peek().token_type == TokenType::If {
+            self.advance();
+            let condition = self.equality();
+
+            if self.peek().token_type != TokenType::Else {
+                panic!("Expected 'else' after if expression");
+            }
+
+            self.advance();
+
+            let else_expression = self.equality();
+
+            first = Expression::IfExpression(Box::new(IfExpression {
                 condition: condition,
-                then_branch: then_branch,
-                else_branch: else_branch,
+                then_branch: first,
+                else_branch: else_expression,
             }));
         }
 
-        return self.equality();
+        first
     }
 
     fn equality(&mut self) -> Expression {

@@ -1,6 +1,6 @@
 use crate::parser::{
     accept::Accept,
-    expression::{Assignment, Comparison, Cond, Equality, Factor, Primary, Term, Unary},
+    expression::{Assignment, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary},
     statement::{
         Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
     },
@@ -146,9 +146,9 @@ impl super::Visitor for AstPrinter {
         result
     }
 
-    fn visit_cond(&mut self, cond: &Cond) -> Self::Output {
+    fn visit_if_expression(&mut self, cond: &IfExpression) -> Self::Output {
         format!(
-            "cond {} {} {}",
+            "if {} then {} else {}",
             cond.condition.accept(self),
             cond.then_branch.accept(self),
             cond.else_branch.accept(self)
