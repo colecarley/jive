@@ -1,6 +1,6 @@
 use crate::parser::{
     expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
-    statement::{Block, DeclarationStatement, ExpressionStatement, PrintStatement},
+    statement::{Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement},
 };
 
 pub mod ast_printer;
@@ -37,4 +37,6 @@ pub trait Visitor {
     ) -> Self::Output;
 
     fn visit_block(&mut self, block: &Block) -> Self::Output;
+
+    fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output;
 }

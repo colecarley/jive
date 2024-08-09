@@ -4,7 +4,10 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
-        statement::{DeclarationStatement, ExpressionStatement, PrintStatement, Statement},
+        statement::{
+            Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
+            Statement,
+        },
     },
     token::TokenType,
 };
@@ -16,6 +19,7 @@ pub struct TypeChecker {
 impl TypeChecker {
     pub fn new() -> Self {
         TypeChecker {
+            // TODO: implement the environments
             globals: HashMap::new(),
         }
     }
@@ -34,6 +38,9 @@ impl TypeChecker {
                 }
                 Statement::Block(block) => {
                     block.accept(self);
+                }
+                Statement::IfStatement(if_statement) => {
+                    if_statement.accept(self);
                 }
             }
         }
@@ -138,11 +145,15 @@ impl super::Visitor for TypeChecker {
         &mut self,
         expression_statement: &ExpressionStatement,
     ) -> Self::Output {
-        expression_statement.expression.accept(self)
+        expression_statement.expression.accept(self);
+
+        TokenType::Nil
     }
 
     fn visit_print_statement(&mut self, print_statement: &PrintStatement) -> Self::Output {
-        print_statement.expression.accept(self)
+        print_statement.expression.accept(self);
+
+        TokenType::Nil
     }
 
     fn visit_declaration_statement(
@@ -165,9 +176,38 @@ impl super::Visitor for TypeChecker {
         TokenType::Nil
     }
 
-    fn visit_block(&mut self, block: &crate::parser::statement::Block) -> Self::Output {
+    fn visit_block(&mut self, block: &Block) -> Self::Output {
         for statement in &block.statements {
             statement.accept(self);
+        }
+
+        TokenType::Nil
+    }
+
+    fn visit_if_statement(&mut self, if_statemnet: &IfStatement) -> Self::Output {
+        let condition_type = if_statemnet.condition.accept(self);
+        if condition_type != TokenType::Boolean {
+            panic!("Condition must be a boolean");
+        }
+
+        let then_branch_type = if_statemnet.then_branch.accept(self);
+
+        if then_branch_type != TokenType::Nil {
+            panic!(
+                "Then branch must not return a value, but got {:?}",
+                then_branch_type
+            );
+        }
+
+        if let Some(else_branch) = &if_statemnet.else_branch {
+            let else_branch_type = else_branch.accept(self);
+
+            if else_branch_type != TokenType::Nil {
+                panic!(
+                    "Else branch must not return a value, but got {:?}",
+                    else_branch_type
+                );
+            }
         }
 
         TokenType::Nil

@@ -2,7 +2,10 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
-        statement::{DeclarationStatement, ExpressionStatement, PrintStatement, Statement},
+        statement::{
+            Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
+            Statement,
+        },
     },
     token::TokenType,
 };
@@ -38,6 +41,9 @@ impl Interpreter {
                 }
                 Statement::Block(block) => {
                     block.accept(self);
+                }
+                Statement::IfStatement(if_statement) => {
+                    if_statement.accept(self);
                 }
             }
         }
@@ -158,7 +164,7 @@ impl super::Visitor for Interpreter {
         Value::Nil
     }
 
-    fn visit_block(&mut self, block: &crate::parser::statement::Block) -> Self::Output {
+    fn visit_block(&mut self, block: &Block) -> Self::Output {
         let mut new_environment = Environment::new();
         new_environment.enclose(&self.environment);
         let previous_environment = self.environment.clone();
@@ -173,5 +179,18 @@ impl super::Visitor for Interpreter {
         self.environment = previous_environment;
 
         result
+    }
+
+    fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output {
+        if if_statement.condition.accept(self) == Value::Boolean(true) {
+            if_statement.then_branch.accept(self);
+            return Value::Nil;
+        }
+
+        if let Some(else_branch) = &if_statement.else_branch {
+            else_branch.accept(self);
+        }
+
+        Value::Nil
     }
 }

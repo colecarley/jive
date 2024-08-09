@@ -33,6 +33,55 @@ fn main() {
         }
         print \"Outside block\";
         print x + y;
+
+        if true {
+            print \"Inside if\";
+        } else {
+            print \"Inside else\";
+        }
+
+        if false {
+            print \"Inside if\";
+        } else {
+            print \"Inside else\";
+        }
+
+        if 1 < 2 {
+            print \"Inside if\";
+        } else {
+            print \"Inside else\";
+        }
+
+        if 1 > 2 {
+            print \"Inside if\";
+        } else {
+            print \"Inside else\";
+        }
+
+        if true {
+            print \"Inside if\";
+        }
+
+        print \"Outside if\";
+
+        if true {
+            print \"Inside if x is\";
+            print x;
+
+            if true {
+                print \"Inside nested if, making x = 68\";
+                make x = 68;
+                if true {
+                    print \"Inside nested nested if, making x = 69\";
+                    make x = 69;
+                }
+                print \"Outside nested nested if x is\";
+                print x;
+            }
+
+            print \"Outside nested if x is\";
+            print x;
+        }
         "
     .to_string();
 

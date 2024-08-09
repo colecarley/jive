@@ -17,6 +17,8 @@ pub enum TokenType {
     // Keywords
     Print,
     Make,
+    If,
+    Else,
 
     // Single-character tokens
     Plus,

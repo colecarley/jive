@@ -1,6 +1,7 @@
 /*
 program → statement* EOF ;
-statement → printStatement | declarationStatement | expressionStatement | block ;
+statement → printStatement | declarationStatement | expressionStatement | ifStatement | block ;
+ifStatement → "if"  expression  '{' block '}' ( "else" '{' block '}' )? ;
 block → "{" statement* "}" ;
 expression → assignment ;
 assignment → identifier "=" assignment | equality ;
@@ -21,7 +22,9 @@ pub mod expression;
 pub mod statement;
 
 use expression::{Assignment, Comparison, Equality, Expression, Factor, Primary, Term, Unary};
-use statement::{Block, DeclarationStatement, ExpressionStatement, PrintStatement, Statement};
+use statement::{
+    Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
+};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -51,8 +54,43 @@ impl Parser {
             TokenType::Print => return self.print_statement(),
             TokenType::Make => return self.declaration_statement(),
             TokenType::LBrace => return self.block(),
+            TokenType::If => return self.if_statement(),
             _ => return self.expression_statement(),
         }
+    }
+
+    fn if_statement(&mut self) -> Statement {
+        self.advance();
+
+        let condition = self.expression();
+
+        let then_branch = self.statement();
+        let then_branch = if let Statement::Block(block) = then_branch {
+            *block
+        } else {
+            panic!("Expected block after if condition");
+        };
+
+        let else_branch = if self.peek().token_type == TokenType::Else {
+            self.advance();
+
+            let else_branch = self.statement();
+            let else_branch = if let Statement::Block(block) = else_branch {
+                *block
+            } else {
+                panic!("Expected block after else condition");
+            };
+
+            Some(Box::new(else_branch))
+        } else {
+            None
+        };
+
+        return Statement::IfStatement(Box::new(IfStatement {
+            condition,
+            then_branch: Box::new(then_branch),
+            else_branch,
+        }));
     }
 
     fn block(&mut self) -> Statement {
@@ -76,7 +114,7 @@ impl Parser {
         let expression = self.expression();
 
         if self.peek().token_type != TokenType::Semicolon {
-            panic!("Expected ';' after expression");
+            panic!("Expected ';' after expression at line {}", self.peek().line);
         }
 
         self.advance();

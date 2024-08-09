@@ -4,12 +4,14 @@ use super::accept::Accept;
 
 pub mod block;
 pub mod declaration;
-pub mod expression_statement;
+pub mod expression;
+pub mod if_statement;
 pub mod print;
 
 pub use block::Block;
 pub use declaration::DeclarationStatement;
-pub use expression_statement::ExpressionStatement;
+pub use expression::ExpressionStatement;
+pub use if_statement::IfStatement;
 pub use print::PrintStatement;
 
 pub enum Statement {
@@ -17,6 +19,7 @@ pub enum Statement {
     PrintStatement(Box<PrintStatement>),
     DeclarationStatement(Box<DeclarationStatement>),
     Block(Box<Block>),
+    IfStatement(Box<IfStatement>),
 }
 
 impl Accept for Statement {
@@ -32,6 +35,7 @@ impl Accept for Statement {
                 visitor.visit_declaration_statement(declaration_statement)
             }
             Statement::Block(block) => visitor.visit_block(block),
+            Statement::IfStatement(if_statement) => visitor.visit_if_statement(if_statement),
         }
     }
 }

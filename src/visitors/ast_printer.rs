@@ -1,7 +1,9 @@
 use crate::parser::{
     accept::Accept,
     expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
-    statement::{DeclarationStatement, ExpressionStatement, PrintStatement, Statement},
+    statement::{
+        Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
+    },
 };
 
 pub struct AstPrinter {}
@@ -26,6 +28,9 @@ impl AstPrinter {
                 }
                 Statement::Block(block) => {
                     result.push_str(&block.accept(self));
+                }
+                Statement::IfStatement(if_statement) => {
+                    result.push_str(&if_statement.accept(self));
                 }
             }
             result.push('\n');
@@ -112,7 +117,7 @@ impl super::Visitor for AstPrinter {
         }
     }
 
-    fn visit_block(&mut self, block: &crate::parser::statement::Block) -> Self::Output {
+    fn visit_block(&mut self, block: &Block) -> Self::Output {
         let mut result = String::new();
         for statement in &block.statements {
             result.push_str(format!("\t{}", &statement.accept(self)).as_str());
@@ -120,5 +125,24 @@ impl super::Visitor for AstPrinter {
         }
 
         format!("(\n{})", result)
+    }
+
+    fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output {
+        let mut result = String::new();
+
+        let condition = if_statement.condition.accept(self);
+
+        let then_branch = if_statement.then_branch.accept(self);
+
+        if let Some(else_branch) = &if_statement.else_branch {
+            let else_branch = else_branch.accept(self);
+            result.push_str(
+                format!("if {} then {} else {}", condition, then_branch, else_branch).as_str(),
+            );
+        } else {
+            result.push_str(format!("if {} then {}", condition, then_branch).as_str());
+        }
+
+        result
     }
 }
