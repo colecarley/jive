@@ -1,3 +1,4 @@
+use core::prelude;
 use std::collections::HashMap;
 
 use crate::{
@@ -12,15 +13,17 @@ use crate::{
     token::TokenType,
 };
 
+use super::environment::Environment;
+
 pub struct TypeChecker {
-    pub globals: HashMap<String, TokenType>,
+    environment: Environment<TokenType>,
 }
 
 impl TypeChecker {
     pub fn new() -> Self {
         TypeChecker {
             // TODO: implement the environments
-            globals: HashMap::new(),
+            environment: Environment::<TokenType>::new(),
         }
     }
 
@@ -52,7 +55,7 @@ impl super::Visitor for TypeChecker {
 
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let value_type = assignment.value.accept(self);
-        self.globals
+        self.environment
             .insert(assignment.identifier.lexeme.clone(), value_type);
 
         TokenType::Nil
@@ -130,13 +133,7 @@ impl super::Visitor for TypeChecker {
             TokenType::Boolean => TokenType::Boolean,
             TokenType::String => TokenType::String,
             TokenType::Nil => TokenType::Nil,
-            TokenType::Identifier => {
-                if self.globals.contains_key(&primary.value.lexeme) {
-                    self.globals.get(&primary.value.lexeme).unwrap().clone()
-                } else {
-                    panic!("Undefined variable {}", primary.value.lexeme)
-                }
-            }
+            TokenType::Identifier => self.environment.get(primary.value.lexeme.clone()).clone(),
             _ => panic!("Unexpected token type"),
         }
     }
@@ -162,13 +159,13 @@ impl super::Visitor for TypeChecker {
     ) -> Self::Output {
         if let Some(expression) = &declaration_statement.expression {
             let value_type = expression.accept(self);
-            self.globals
+            self.environment
                 .insert(declaration_statement.identifier.lexeme.clone(), value_type);
 
             return TokenType::Nil;
         }
 
-        self.globals.insert(
+        self.environment.insert(
             declaration_statement.identifier.lexeme.clone(),
             TokenType::Nil,
         );
@@ -177,9 +174,16 @@ impl super::Visitor for TypeChecker {
     }
 
     fn visit_block(&mut self, block: &Block) -> Self::Output {
+        let mut new_environment = Environment::<TokenType>::new();
+        new_environment.enclose(&self.environment);
+        let previous_environment = self.environment.clone();
+        self.environment = new_environment;
+
         for statement in &block.statements {
             statement.accept(self);
         }
+
+        self.environment = previous_environment;
 
         TokenType::Nil
     }

@@ -4,6 +4,7 @@ use crate::parser::{
 };
 
 pub mod ast_printer;
+pub mod environment;
 pub mod interpreter;
 pub mod type_checker;
 

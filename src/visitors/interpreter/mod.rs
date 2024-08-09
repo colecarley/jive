@@ -10,20 +10,20 @@ use crate::{
     token::TokenType,
 };
 
-pub mod environment;
 pub mod value;
 
-use environment::Environment;
 use value::Value;
 
+use super::environment::Environment;
+
 pub struct Interpreter {
-    environment: Environment,
+    environment: Environment<Value>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
-            environment: Environment::new(),
+            environment: Environment::<Value>::new(),
         }
     }
 
@@ -170,15 +170,12 @@ impl super::Visitor for Interpreter {
         let previous_environment = self.environment.clone();
         self.environment = new_environment;
 
-        let mut result = Value::Nil;
-
         for statement in &block.statements {
-            result = statement.accept(self);
+            statement.accept(self);
         }
 
         self.environment = previous_environment;
-
-        result
+        Value::Nil
     }
 
     fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output {

@@ -1,14 +1,12 @@
 use std::collections::HashMap;
 
-use super::Value;
-
 #[derive(Clone)]
-pub struct Environment {
-    values: HashMap<String, Value>,
-    enclosing: Option<Box<Environment>>,
+pub struct Environment<T: Clone> {
+    values: HashMap<String, T>,
+    enclosing: Option<Box<Environment<T>>>,
 }
 
-impl Environment {
+impl<T: Clone> Environment<T> {
     pub fn new() -> Self {
         Environment {
             values: HashMap::new(),
@@ -16,7 +14,7 @@ impl Environment {
         }
     }
 
-    pub fn get(&self, identifier: String) -> Value {
+    pub fn get(&self, identifier: String) -> T {
         if self.values.contains_key(&identifier) {
             return self.values.get(&identifier).unwrap().clone();
         } else {
@@ -27,11 +25,11 @@ impl Environment {
         }
     }
 
-    pub fn insert(&mut self, identifier: String, value: Value) {
+    pub fn insert(&mut self, identifier: String, value: T) {
         self.values.insert(identifier, value);
     }
 
-    pub fn enclose(&mut self, enclosing: &Environment) {
+    pub fn enclose(&mut self, enclosing: &Environment<T>) {
         self.enclosing = Some(Box::new(enclosing.clone()));
     }
 }
