@@ -1,6 +1,3 @@
-use core::prelude;
-use std::collections::HashMap;
-
 use crate::{
     parser::{
         accept::Accept,
@@ -127,7 +124,6 @@ impl super::Visitor for TypeChecker {
     }
 
     fn visit_primary(&mut self, primary: &Primary) -> Self::Output {
-        // primary.value.token_type.clone()
         match primary.value.token_type {
             TokenType::Number => TokenType::Number,
             TokenType::Boolean => TokenType::Boolean,
