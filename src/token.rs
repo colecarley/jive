@@ -19,7 +19,6 @@ pub enum TokenType {
     Make,
     If,
     Else,
-    Cond,
 
     // Single-character tokens
     Plus,
