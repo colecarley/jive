@@ -154,4 +154,12 @@ impl super::Visitor for AstPrinter {
             cond.else_branch.accept(self)
         )
     }
+
+    fn visit_and(&mut self, and: &crate::parser::expression::And) -> Self::Output {
+        format!("({} and {})", and.left.accept(self), and.right.accept(self))
+    }
+
+    fn visit_or(&mut self, or: &crate::parser::expression::Or) -> Self::Output {
+        format!("({} or {})", or.left.accept(self), or.right.accept(self))
+    }
 }

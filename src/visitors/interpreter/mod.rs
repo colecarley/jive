@@ -2,7 +2,7 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            Assignment, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
+            And, Assignment, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
         },
         statement::{
             Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
@@ -199,5 +199,25 @@ impl super::Visitor for Interpreter {
         }
 
         if_expression.else_branch.accept(self)
+    }
+
+    fn visit_and(&mut self, and: &And) -> Self::Output {
+        let left = and.left.accept(self);
+
+        if left == Value::Boolean(false) {
+            return Value::Boolean(false);
+        }
+
+        and.right.accept(self)
+    }
+
+    fn visit_or(&mut self, or: &Or) -> Self::Output {
+        let left = or.left.accept(self);
+
+        if left == Value::Boolean(true) {
+            return Value::Boolean(true);
+        }
+
+        or.right.accept(self)
     }
 }

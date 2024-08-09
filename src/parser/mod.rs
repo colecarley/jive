@@ -6,6 +6,8 @@ block → "{" statement* "}" ;
 expression → assignment ;
 assignment → identifier "=" assignment | ifExpression ;
 ifExpression → expression "if" expression "else" expression | equality ;
+or → and ( "||" and )* | and;
+and → equality ( "&&" equality )* | equality;
 equality → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term → factor ( ( "-" | "+" ) factor )* ;
@@ -23,7 +25,8 @@ pub mod expression;
 pub mod statement;
 
 use expression::{
-    Assignment, Comparison, Equality, Expression, Factor, IfExpression, Primary, Term, Unary,
+    And, Assignment, Comparison, Equality, Expression, Factor, IfExpression, Or, Primary, Term,
+    Unary,
 };
 use statement::{
     Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
@@ -192,11 +195,11 @@ impl Parser {
     }
 
     fn if_expression(&mut self) -> Expression {
-        let mut first = self.equality();
+        let mut first = self.or();
 
         while self.peek().token_type == TokenType::If {
             self.advance();
-            let condition = self.equality();
+            let condition = self.or();
 
             if self.peek().token_type != TokenType::Else {
                 panic!("Expected 'else' after if expression");
@@ -204,13 +207,37 @@ impl Parser {
 
             self.advance();
 
-            let else_expression = self.equality();
+            let else_expression = self.or();
 
             first = Expression::IfExpression(Box::new(IfExpression {
                 condition: condition,
                 then_branch: first,
                 else_branch: else_expression,
             }));
+        }
+
+        first
+    }
+
+    fn or(&mut self) -> Expression {
+        let mut first = self.and();
+
+        while self.peek().token_type == TokenType::OrOr {
+            self.advance();
+            let right = self.and();
+            first = Expression::Or(Box::new(Or { left: first, right }));
+        }
+
+        first
+    }
+
+    fn and(&mut self) -> Expression {
+        let mut first = self.equality();
+
+        while self.peek().token_type == TokenType::AndAnd {
+            self.advance();
+            let right = self.equality();
+            first = Expression::And(Box::new(And { left: first, right }));
         }
 
         first

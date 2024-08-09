@@ -226,4 +226,26 @@ impl super::Visitor for TypeChecker {
 
         TokenType::Nil
     }
+
+    fn visit_and(&mut self, and: &crate::parser::expression::And) -> Self::Output {
+        let left_type = and.left.accept(self);
+        let right_type = and.right.accept(self);
+
+        if left_type != TokenType::Boolean || right_type != TokenType::Boolean {
+            panic!("Operands must be booleans");
+        }
+
+        TokenType::Boolean
+    }
+
+    fn visit_or(&mut self, or: &crate::parser::expression::Or) -> Self::Output {
+        let left_type = or.left.accept(self);
+        let right_type = or.right.accept(self);
+
+        if left_type != TokenType::Boolean || right_type != TokenType::Boolean {
+            panic!("Operands must be booleans");
+        }
+
+        TokenType::Boolean
+    }
 }

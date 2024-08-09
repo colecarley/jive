@@ -1,5 +1,7 @@
 use crate::parser::{
-    expression::{Assignment, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary},
+    expression::{
+        And, Assignment, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
+    },
     statement::{Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement},
 };
 
@@ -42,4 +44,8 @@ pub trait Visitor {
     fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output;
 
     fn visit_if_expression(&mut self, if_expression: &IfExpression) -> Self::Output;
+
+    fn visit_and(&mut self, and: &And) -> Self::Output;
+
+    fn visit_or(&mut self, or: &Or) -> Self::Output;
 }

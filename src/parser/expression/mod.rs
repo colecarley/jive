@@ -1,17 +1,21 @@
+pub mod and;
 pub mod assignment;
 pub mod comparison;
 pub mod equality;
 pub mod factor;
 pub mod if_expression;
+pub mod or;
 pub mod primary;
 pub mod term;
 pub mod unary;
 
+pub use and::And;
 pub use assignment::Assignment;
 pub use comparison::Comparison;
 pub use equality::Equality;
 pub use factor::Factor;
 pub use if_expression::IfExpression;
+pub use or::Or;
 pub use primary::Primary;
 pub use term::Term;
 pub use unary::Unary;
@@ -29,6 +33,8 @@ pub enum Expression {
     Factor(Box<Factor>),
     Unary(Box<Unary>),
     Primary(Box<Primary>),
+    Or(Box<Or>),
+    And(Box<And>),
 }
 
 impl Accept for Expression {
@@ -42,6 +48,8 @@ impl Accept for Expression {
             Expression::Unary(unary) => unary.accept(visitor),
             Expression::Primary(primary) => primary.accept(visitor),
             Expression::IfExpression(cond) => cond.accept(visitor),
+            Expression::Or(or) => or.accept(visitor),
+            Expression::And(and) => and.accept(visitor),
         }
     }
 }
