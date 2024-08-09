@@ -6,7 +6,7 @@ use crate::{
             Unary,
         },
         statement::{
-            Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement,
+            Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
             Statement, WhileStatement,
         },
     },
@@ -54,90 +54,109 @@ impl Interpreter {
 }
 
 impl super::Visitor for Interpreter {
-    type Output = Value;
+    type Output = (Value, bool);
 
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
-        let value = assignment.value.accept(self);
+        let (value, _) = assignment.value.accept(self);
         self.environment
             .assign(assignment.identifier.lexeme.clone(), value.clone());
 
-        value
+        (value, false)
     }
 
     fn visit_equality(&mut self, equality: &Equality) -> Self::Output {
-        match equality.operator.token_type {
-            TokenType::EqualEqual => {
-                Value::Boolean(equality.left.accept(self) == equality.right.accept(self))
-            }
-            TokenType::BangEqual => {
-                Value::Boolean(equality.left.accept(self) != equality.right.accept(self))
-            }
-            _ => panic!("Unexpected token type"),
-        }
+        let (left, _) = equality.left.accept(self);
+        let (right, _) = equality.right.accept(self);
+
+        (
+            match equality.operator.token_type {
+                TokenType::EqualEqual => Value::Boolean(left == right),
+                TokenType::BangEqual => Value::Boolean(left != right),
+                _ => panic!("Unexpected token type"),
+            },
+            false,
+        )
     }
 
     fn visit_comparison(&mut self, comparison: &Comparison) -> Self::Output {
-        match comparison.operator.token_type {
-            TokenType::Greater => {
-                Value::Boolean(comparison.left.accept(self) > comparison.right.accept(self))
-            }
-            TokenType::GreaterEqual => {
-                Value::Boolean(comparison.left.accept(self) >= comparison.right.accept(self))
-            }
-            TokenType::Less => {
-                Value::Boolean(comparison.left.accept(self) < comparison.right.accept(self))
-            }
-            TokenType::LessEqual => {
-                Value::Boolean(comparison.left.accept(self) <= comparison.right.accept(self))
-            }
-            _ => panic!("Unexpected token type"),
-        }
+        let (left, _) = comparison.left.accept(self);
+        let (right, _) = comparison.right.accept(self);
+
+        (
+            match comparison.operator.token_type {
+                TokenType::Greater => Value::Boolean(left > right),
+                TokenType::GreaterEqual => Value::Boolean(left >= right),
+                TokenType::Less => Value::Boolean(left < right),
+                TokenType::LessEqual => Value::Boolean(left <= right),
+                _ => panic!("Unexpected token type"),
+            },
+            false,
+        )
     }
 
     fn visit_term(&mut self, term: &Term) -> Self::Output {
-        match term.operator.token_type {
-            TokenType::Plus => term.left.accept(self) + term.right.accept(self),
-            TokenType::Minus => term.left.accept(self) - term.right.accept(self),
-            _ => panic!("Unexpected token type"),
-        }
+        let (left, _) = term.left.accept(self);
+        let (right, _) = term.right.accept(self);
+        (
+            match term.operator.token_type {
+                TokenType::Plus => left + right,
+                TokenType::Minus => left - right,
+                _ => panic!("Unexpected token type"),
+            },
+            false,
+        )
     }
 
     fn visit_factor(&mut self, factor: &Factor) -> Self::Output {
-        match factor.operator.token_type {
-            TokenType::Star => factor.left.accept(self) * factor.right.accept(self),
-            TokenType::Slash => factor.left.accept(self),
-            _ => panic!("Unexpected token type"),
-        }
+        let (left, _) = factor.left.accept(self);
+        let (right, _) = factor.right.accept(self);
+        (
+            match factor.operator.token_type {
+                TokenType::Star => left * right,
+                TokenType::Slash => left / right,
+                _ => panic!("Unexpected token type"),
+            },
+            false,
+        )
     }
 
     fn visit_unary(&mut self, unary: &Unary) -> Self::Output {
-        match unary.operator.token_type {
-            TokenType::Minus => -unary.right.accept(self),
-            TokenType::Bang => Value::Boolean(unary.right.accept(self) == Value::Boolean(false)),
-            _ => panic!("Unexpected token type"),
-        }
+        let (value, _) = unary.right.accept(self);
+        (
+            match unary.operator.token_type {
+                TokenType::Minus => -value,
+                TokenType::Bang => Value::Boolean(value == Value::Boolean(false)),
+                _ => panic!("Unexpected token type"),
+            },
+            false,
+        )
     }
 
     fn visit_primary(&mut self, primary: &Primary) -> Self::Output {
-        match primary.value.token_type {
-            TokenType::Number => Value::Number(primary.value.lexeme.parse().unwrap()),
-            TokenType::Boolean => Value::Boolean(primary.value.lexeme == "true"),
-            TokenType::String => Value::String(primary.value.lexeme.clone()),
-            TokenType::Identifier => self.environment.get(primary.value.lexeme.clone()),
-            TokenType::Nil => Value::Nil,
-            _ => panic!("Unexpected token type"),
-        }
+        (
+            match primary.value.token_type {
+                TokenType::Number => Value::Number(primary.value.lexeme.parse().unwrap()),
+                TokenType::Boolean => Value::Boolean(primary.value.lexeme == "true"),
+                TokenType::String => Value::String(primary.value.lexeme.clone()),
+                TokenType::Identifier => self.environment.get(primary.value.lexeme.clone()),
+                TokenType::Nil => Value::Nil,
+                _ => panic!("Unexpected token type"),
+            },
+            false,
+        )
     }
 
     fn visit_expression_statement(
         &mut self,
         expression_statement: &ExpressionStatement,
     ) -> Self::Output {
-        expression_statement.expression.accept(self)
+        expression_statement.expression.accept(self);
+
+        (Value::Nil, false)
     }
 
     fn visit_print_statement(&mut self, print_statement: &PrintStatement) -> Self::Output {
-        let value = print_statement.expression.accept(self);
+        let (value, _) = print_statement.expression.accept(self);
 
         match value {
             Value::Number(number) => println!("{}", number),
@@ -148,7 +167,7 @@ impl super::Visitor for Interpreter {
             Value::Nil => println!("nil"),
         }
 
-        Value::Nil
+        (Value::Nil, false)
     }
 
     fn visit_variable_declaration(
@@ -156,16 +175,16 @@ impl super::Visitor for Interpreter {
         variable_declaration: &crate::parser::statement::VariableDeclaration,
     ) -> Self::Output {
         if let Some(expression) = &variable_declaration.expression {
-            let value = expression.accept(self);
+            let (value, _) = expression.accept(self);
             self.environment
                 .declare(variable_declaration.identifier.lexeme.clone(), value);
 
-            return Value::Nil;
+            return (Value::Nil, false);
         }
         self.environment
             .declare(variable_declaration.identifier.lexeme.clone(), Value::Nil);
 
-        Value::Nil
+        (Value::Nil, false)
     }
 
     fn visit_block(&mut self, block: &Block) -> Self::Output {
@@ -174,28 +193,38 @@ impl super::Visitor for Interpreter {
         self.environment = new_environment.clone();
 
         for statement in &block.statements {
-            statement.accept(self);
+            let (result, ret) = statement.accept(self);
+            if ret {
+                println!("found return statement in block");
+                return (result, ret);
+            }
         }
 
         self.environment = *self.environment.get_enclosing();
-        Value::Nil
+        (Value::Nil, false)
     }
 
     fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output {
-        if if_statement.condition.accept(self) == Value::Boolean(true) {
-            if_statement.then_branch.accept(self);
-            return Value::Nil;
+        let (condition, _) = if_statement.condition.accept(self);
+        if condition == Value::Boolean(true) {
+            let (result, ret) = if_statement.then_branch.accept(self);
+            if ret {
+                return (result, ret);
+            }
+            return (Value::Nil, false);
         }
 
         if let Some(else_branch) = &if_statement.else_branch {
             else_branch.accept(self);
         }
 
-        Value::Nil
+        (Value::Nil, false)
     }
 
     fn visit_if_expression(&mut self, if_expression: &IfExpression) -> Self::Output {
-        if if_expression.condition.accept(self) == Value::Boolean(true) {
+        let (condition, _) = if_expression.condition.accept(self);
+
+        if condition == Value::Boolean(true) {
             return if_expression.then_branch.accept(self);
         }
 
@@ -203,46 +232,57 @@ impl super::Visitor for Interpreter {
     }
 
     fn visit_and(&mut self, and: &And) -> Self::Output {
-        let left = and.left.accept(self);
+        let (left, _) = and.left.accept(self);
 
         if left == Value::Boolean(false) {
-            return Value::Boolean(false);
+            return (Value::Boolean(false), false);
         }
 
         and.right.accept(self)
     }
 
     fn visit_or(&mut self, or: &Or) -> Self::Output {
-        let left = or.left.accept(self);
+        let (left, _) = or.left.accept(self);
 
         if left == Value::Boolean(true) {
-            return Value::Boolean(true);
+            return (Value::Boolean(true), false);
         }
 
         or.right.accept(self)
     }
 
     fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output {
-        while while_statement.condition.accept(self) == Value::Boolean(true) {
-            while_statement.body.accept(self);
+        println!("while statement");
+        loop {
+            let (condition, _) = while_statement.condition.accept(self);
+            if condition == Value::Boolean(false) {
+                break;
+            }
+
+            let (result, ret) = while_statement.body.accept(self);
+            if ret {
+                println!("found return statement in while loop");
+                return (result, ret);
+            }
         }
 
-        Value::Nil
+        (Value::Nil, false)
     }
 
     fn visit_call(&mut self, call: &Call) -> Self::Output {
-        let callee = call.identifier.accept(self);
+        let (callee, _) = call.identifier.accept(self);
 
         let mut arguments = Vec::new();
 
         for argument in &call.arguments {
-            arguments.push(argument.accept(self));
+            let (arg, _) = argument.accept(self);
+            arguments.push(arg);
         }
 
         match callee {
             Value::BuiltIn(callable) => {
                 if callable.arity.is_none() {
-                    return callable.call(self, arguments);
+                    return (callable.call(self, arguments), false);
                 }
 
                 let arity = callable.arity.unwrap();
@@ -250,9 +290,9 @@ impl super::Visitor for Interpreter {
                     panic!("Expected {} arguments but got {}", arity, arguments.len());
                 }
 
-                callable.call(self, arguments)
+                return (callable.call(self, arguments), false);
             }
-            Value::Function(function) => function.call(self, arguments),
+            Value::Function(function) => (function.call(self, arguments), false),
             _ => panic!("Can only call functions"),
         }
     }
@@ -272,6 +312,17 @@ impl super::Visitor for Interpreter {
 
         self.environment.declare(identifier, value);
 
-        Value::Nil
+        (Value::Nil, false)
+    }
+
+    fn visit_return(&mut self, return_statement: &Return) -> Self::Output {
+        println!("visiting return");
+        match return_statement.value {
+            Some(ref value) => {
+                let (result, _) = value.accept(self);
+                return (result, true);
+            }
+            None => (Value::Nil, true),
+        }
     }
 }

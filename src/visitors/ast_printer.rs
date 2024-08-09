@@ -4,8 +4,8 @@ use crate::parser::{
         Assignment, Call, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
     },
     statement::{
-        Block, ExpressionStatement, IfStatement, PrintStatement, Statement, VariableDeclaration,
-        WhileStatement,
+        Block, ExpressionStatement, IfStatement, PrintStatement, Return, Statement,
+        VariableDeclaration, WhileStatement,
     },
 };
 
@@ -184,6 +184,16 @@ impl super::Visitor for AstPrinter {
                 .collect::<Vec<String>>()
                 .join(","),
             function_declaration.body.accept(self),
+        )
+    }
+
+    fn visit_return(&mut self, return_statement: &Return) -> Self::Output {
+        format!(
+            "return ({})",
+            match &return_statement.value {
+                Some(value) => value.accept(self),
+                None => String::from(""),
+            }
         )
     }
 }

@@ -1,9 +1,11 @@
+use interpreter::{value::Value, Interpreter};
+
 use crate::parser::{
     expression::{
         And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
     },
     statement::{
-        Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement,
+        Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
         VariableDeclaration, WhileStatement,
     },
 };
@@ -60,4 +62,6 @@ pub trait Visitor {
         &mut self,
         function_declaration: &FunctionDeclaration,
     ) -> Self::Output;
+
+    fn visit_return(&mut self, return_statement: &Return) -> Self::Output;
 }

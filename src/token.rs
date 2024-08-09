@@ -23,6 +23,7 @@ pub enum TokenType {
     Or,
     While,
     Funk,
+    Return,
 
     // Single-character tokens
     Plus,

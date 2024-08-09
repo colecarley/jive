@@ -1,6 +1,6 @@
 /*
 program → declaration* EOF ;
-statement → printStatement | expressionStatement | ifStatement | block | whileStatement ;
+statement → printStatement | expressionStatement | ifStatement | block | whileStatement | returnStatement ;
 declaration → functionDeclaration | variableDeclaration |  statement ;
 variableDeclaration → "make" IDENTIFIER ( "=" expression )? ";" ;
 functionDeclaration → "funk" function ;
@@ -35,8 +35,8 @@ use expression::{
     Term, Unary,
 };
 use statement::{
-    Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Statement,
-    VariableDeclaration, WhileStatement,
+    Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
+    Statement, VariableDeclaration, WhileStatement,
 };
 
 pub struct Parser {
@@ -76,8 +76,28 @@ impl Parser {
             TokenType::LBrace => return self.block(),
             TokenType::If => return self.if_statement(),
             TokenType::While => return self.while_statement(),
+            TokenType::Return => return self.return_statement(),
             _ => return self.expression_statement(),
         }
+    }
+
+    fn return_statement(&mut self) -> Statement {
+        self.advance();
+
+        if self.peek().token_type == TokenType::Semicolon {
+            self.advance();
+            return Statement::Return(Box::new(Return { value: None }));
+        }
+
+        let value = self.expression();
+
+        if self.peek().token_type != TokenType::Semicolon {
+            panic!("Expected ';' after return statement");
+        }
+
+        self.advance();
+
+        return Statement::Return(Box::new(Return { value: Some(value) }));
     }
 
     fn while_statement(&mut self) -> Statement {

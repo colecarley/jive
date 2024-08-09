@@ -135,6 +135,41 @@ fn main() {
 
         recurse(2);
 
+        funk ret() {
+            if true {
+                if true {
+                    if true {
+                        if true {
+                            return 1;
+                        }
+                        return 2;
+                    }
+                    return 3;
+                }
+                return 4;
+            }
+            return 5;
+        }
+
+        print ret();
+
+
+        funk closure() {
+            make x = 0;
+            funk increment() {
+                x = x + 1;
+                print x;
+            }
+            return increment;
+        }
+
+        make inc = closure();
+
+        make x = 100;
+        inc();
+        inc();
+        inc();
+
         "
     .to_string();
 
@@ -147,8 +182,8 @@ fn main() {
     let mut parser = Parser::new(lexer.tokens);
     let statements = parser.parse();
 
-    // let mut ast_printer = visitors::ast_printer::AstPrinter::new();
-    // ast_printer.print(&statements);
+    let mut ast_printer = visitors::ast_printer::AstPrinter::new();
+    ast_printer.print(&statements);
 
     let mut type_checker = visitors::type_checker::TypeChecker::new();
     type_checker.check(&statements);

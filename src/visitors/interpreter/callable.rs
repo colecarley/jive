@@ -25,7 +25,7 @@ impl Callable for Function {
         }
 
         interpreter.environment = new_environment.clone();
-        let result = self.declaration.body.accept(interpreter);
+        let (result, _) = self.declaration.body.accept(interpreter);
 
         interpreter.environment = *new_environment.get_enclosing();
 

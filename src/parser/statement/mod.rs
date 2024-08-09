@@ -7,6 +7,7 @@ pub mod expression;
 pub mod function_declaration;
 pub mod if_statement;
 pub mod print;
+pub mod return_statement;
 pub mod variable_declaration;
 pub mod while_statement;
 
@@ -15,6 +16,7 @@ pub use expression::ExpressionStatement;
 pub use function_declaration::FunctionDeclaration;
 pub use if_statement::IfStatement;
 pub use print::PrintStatement;
+pub use return_statement::Return;
 pub use variable_declaration::VariableDeclaration;
 pub use while_statement::WhileStatement;
 
@@ -27,6 +29,7 @@ pub enum Statement {
     IfStatement(Box<IfStatement>),
     WhileStatement(Box<WhileStatement>),
     FunctionDeclaration(Box<FunctionDeclaration>),
+    Return(Box<Return>),
 }
 
 impl Accept for Statement {
@@ -49,6 +52,7 @@ impl Accept for Statement {
             Statement::FunctionDeclaration(function_declaration) => {
                 visitor.visit_function_declaration(function_declaration)
             }
+            Statement::Return(return_statement) => visitor.visit_return(return_statement),
         }
     }
 }

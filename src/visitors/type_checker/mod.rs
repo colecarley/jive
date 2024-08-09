@@ -5,8 +5,8 @@ use crate::{
             Assignment, Call, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
         },
         statement::{
-            Block, ExpressionStatement, IfStatement, PrintStatement, Statement,
-            VariableDeclaration, WhileStatement,
+            Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
+            Statement, VariableDeclaration, WhileStatement,
         },
     },
     token::TokenType,
@@ -266,8 +266,8 @@ impl super::Visitor for TypeChecker {
 
     fn visit_call(&mut self, call: &Call) -> Self::Output {
         let callee_type = call.identifier.accept(self);
-        if callee_type != Type::Function || callee_type == Type::Unknown {
-            panic!("Callee must be a function");
+        if callee_type != Type::Function && callee_type != Type::Unknown {
+            panic!("Callee must be a function, but got {:?}", callee_type);
         }
 
         for argument in &call.arguments {
@@ -279,7 +279,7 @@ impl super::Visitor for TypeChecker {
 
     fn visit_function_declaration(
         &mut self,
-        function_declaration: &crate::parser::statement::FunctionDeclaration,
+        function_declaration: &FunctionDeclaration,
     ) -> Self::Output {
         self.environment.declare(
             function_declaration.identifier.lexeme.clone(),
@@ -300,5 +300,12 @@ impl super::Visitor for TypeChecker {
         self.environment = *self.environment.get_enclosing();
 
         Type::Nil
+    }
+
+    fn visit_return(&mut self, return_statement: &Return) -> Self::Output {
+        match &return_statement.value {
+            Some(value) => value.accept(self),
+            None => Type::Nil,
+        }
     }
 }
