@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use super::Value;
 
+#[derive(Clone)]
 pub struct Environment {
     values: HashMap<String, Value>,
     enclosing: Option<Box<Environment>>,
@@ -28,5 +29,9 @@ impl Environment {
 
     pub fn insert(&mut self, identifier: String, value: Value) {
         self.values.insert(identifier, value);
+    }
+
+    pub fn enclose(&mut self, enclosing: &Environment) {
+        self.enclosing = Some(Box::new(enclosing.clone()));
     }
 }

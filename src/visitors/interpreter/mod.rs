@@ -36,6 +36,9 @@ impl Interpreter {
                 Statement::DeclarationStatement(declaration_statement) => {
                     declaration_statement.accept(self);
                 }
+                Statement::Block(block) => {
+                    block.accept(self);
+                }
             }
         }
 
@@ -153,5 +156,22 @@ impl super::Visitor for Interpreter {
             .insert(declaration_statement.identifier.lexeme.clone(), Value::Nil);
 
         Value::Nil
+    }
+
+    fn visit_block(&mut self, block: &crate::parser::statement::Block) -> Self::Output {
+        let mut new_environment = Environment::new();
+        new_environment.enclose(&self.environment);
+        let previous_environment = self.environment.clone();
+        self.environment = new_environment;
+
+        let mut result = Value::Nil;
+
+        for statement in &block.statements {
+            result = statement.accept(self);
+        }
+
+        self.environment = previous_environment;
+
+        result
     }
 }

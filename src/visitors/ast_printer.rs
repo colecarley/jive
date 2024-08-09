@@ -24,6 +24,9 @@ impl AstPrinter {
                 Statement::DeclarationStatement(declaration_statement) => {
                     result.push_str(&declaration_statement.accept(self));
                 }
+                Statement::Block(block) => {
+                    result.push_str(&block.accept(self));
+                }
             }
             result.push('\n');
         }
@@ -107,5 +110,15 @@ impl super::Visitor for AstPrinter {
         } else {
             format!("make {}", identifier)
         }
+    }
+
+    fn visit_block(&mut self, block: &crate::parser::statement::Block) -> Self::Output {
+        let mut result = String::new();
+        for statement in &block.statements {
+            result.push_str(format!("\t{}", &statement.accept(self)).as_str());
+            result.push('\n');
+        }
+
+        format!("(\n{})", result)
     }
 }

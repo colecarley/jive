@@ -25,6 +25,8 @@ pub enum TokenType {
     Slash,
     LParen,
     RParen,
+    LBrace,
+    RBrace,
     Equal,
     Bang,
     Less,

@@ -1,4 +1,7 @@
 /*
+program → statement* EOF ;
+statement → printStatement | declarationStatement | expressionStatement | block ;
+block → "{" statement* "}" ;
 expression → assignment ;
 assignment → identifier "=" assignment | equality ;
 equality → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -18,7 +21,7 @@ pub mod expression;
 pub mod statement;
 
 use expression::{Assignment, Comparison, Equality, Expression, Factor, Primary, Term, Unary};
-use statement::{DeclarationStatement, ExpressionStatement, PrintStatement, Statement};
+use statement::{Block, DeclarationStatement, ExpressionStatement, PrintStatement, Statement};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -44,13 +47,29 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Statement {
-        if self.peek().token_type == TokenType::Print {
-            return self.print_statement();
-        } else if self.peek().token_type == TokenType::Make {
-            return self.declaration_statement();
-        } else {
-            return self.expression_statement();
+        match self.peek().token_type {
+            TokenType::Print => return self.print_statement(),
+            TokenType::Make => return self.declaration_statement(),
+            TokenType::LBrace => return self.block(),
+            _ => return self.expression_statement(),
         }
+    }
+
+    fn block(&mut self) -> Statement {
+        self.advance();
+        let mut statements = vec![];
+
+        while self.peek().token_type != TokenType::RBrace && !self.is_at_end() {
+            statements.push(self.statement());
+        }
+
+        if self.peek().token_type != TokenType::RBrace {
+            panic!("Expected '}}' after block");
+        }
+
+        self.advance();
+
+        return Statement::Block(Box::new(Block { statements }));
     }
 
     fn expression_statement(&mut self) -> Statement {
@@ -62,7 +81,7 @@ impl Parser {
 
         self.advance();
 
-        return Statement::ExpressionStatement(ExpressionStatement { expression });
+        return Statement::ExpressionStatement(Box::new(ExpressionStatement { expression }));
     }
 
     fn print_statement(&mut self) -> Statement {
@@ -75,7 +94,7 @@ impl Parser {
 
         self.advance();
 
-        return Statement::PrintStatement(PrintStatement { expression });
+        return Statement::PrintStatement(Box::new(PrintStatement { expression }));
     }
 
     fn declaration_statement(&mut self) -> Statement {
@@ -85,10 +104,10 @@ impl Parser {
 
         if self.peek().token_type == TokenType::Semicolon {
             self.advance();
-            return Statement::DeclarationStatement(DeclarationStatement {
+            return Statement::DeclarationStatement(Box::new(DeclarationStatement {
                 identifier,
                 expression: None,
-            });
+            }));
         }
 
         if self.peek().token_type != TokenType::Equal {
@@ -105,10 +124,10 @@ impl Parser {
 
         self.advance();
 
-        return Statement::DeclarationStatement(DeclarationStatement {
+        return Statement::DeclarationStatement(Box::new(DeclarationStatement {
             identifier,
             expression: Some(expression),
-        });
+        }));
     }
 
     fn expression(&mut self) -> Expression {

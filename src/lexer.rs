@@ -48,6 +48,14 @@ impl Lexer {
                     let c = self.advance().to_string();
                     self.add_token(TokenType::RParen, c);
                 }
+                '{' => {
+                    let c = self.advance().to_string();
+                    self.add_token(TokenType::LBrace, c);
+                }
+                '}' => {
+                    let c = self.advance().to_string();
+                    self.add_token(TokenType::RBrace, c);
+                }
                 '-' => {
                     let c = self.advance().to_string();
                     self.add_token(TokenType::Minus, c);

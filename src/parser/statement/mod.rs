@@ -2,18 +2,21 @@ use crate::visitors::Visitor;
 
 use super::accept::Accept;
 
+pub mod block;
 pub mod declaration;
 pub mod expression_statement;
 pub mod print;
 
+pub use block::Block;
 pub use declaration::DeclarationStatement;
 pub use expression_statement::ExpressionStatement;
 pub use print::PrintStatement;
 
 pub enum Statement {
-    ExpressionStatement(ExpressionStatement),
-    PrintStatement(PrintStatement),
-    DeclarationStatement(DeclarationStatement),
+    ExpressionStatement(Box<ExpressionStatement>),
+    PrintStatement(Box<PrintStatement>),
+    DeclarationStatement(Box<DeclarationStatement>),
+    Block(Box<Block>),
 }
 
 impl Accept for Statement {
@@ -28,6 +31,7 @@ impl Accept for Statement {
             Statement::DeclarationStatement(declaration_statement) => {
                 visitor.visit_declaration_statement(declaration_statement)
             }
+            Statement::Block(block) => visitor.visit_block(block),
         }
     }
 }

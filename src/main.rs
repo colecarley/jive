@@ -24,6 +24,15 @@ fn main() {
         print foo;
         make bar;
         print bar;
+        {
+            print \"Inside block\";
+            make x = 6;
+            make y = 8;
+            print x + y;
+            print \"Inside block\";
+        }
+        print \"Outside block\";
+        print x + y;
         "
     .to_string();
 

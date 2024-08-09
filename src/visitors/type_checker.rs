@@ -32,6 +32,9 @@ impl TypeChecker {
                 Statement::DeclarationStatement(declaration_statement) => {
                     declaration_statement.accept(self);
                 }
+                Statement::Block(block) => {
+                    block.accept(self);
+                }
             }
         }
     }
@@ -158,6 +161,14 @@ impl super::Visitor for TypeChecker {
             declaration_statement.identifier.lexeme.clone(),
             TokenType::Nil,
         );
+
+        TokenType::Nil
+    }
+
+    fn visit_block(&mut self, block: &crate::parser::statement::Block) -> Self::Output {
+        for statement in &block.statements {
+            statement.accept(self);
+        }
 
         TokenType::Nil
     }
