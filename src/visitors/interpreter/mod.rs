@@ -195,7 +195,6 @@ impl super::Visitor for Interpreter {
         for statement in &block.statements {
             let (result, ret) = statement.accept(self);
             if ret {
-                println!("found return statement in block");
                 return (result, ret);
             }
         }
@@ -252,7 +251,6 @@ impl super::Visitor for Interpreter {
     }
 
     fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output {
-        println!("while statement");
         loop {
             let (condition, _) = while_statement.condition.accept(self);
             if condition == Value::Boolean(false) {
@@ -261,7 +259,6 @@ impl super::Visitor for Interpreter {
 
             let (result, ret) = while_statement.body.accept(self);
             if ret {
-                println!("found return statement in while loop");
                 return (result, ret);
             }
         }
@@ -316,7 +313,6 @@ impl super::Visitor for Interpreter {
     }
 
     fn visit_return(&mut self, return_statement: &Return) -> Self::Output {
-        println!("visiting return");
         match return_statement.value {
             Some(ref value) => {
                 let (result, _) = value.accept(self);
