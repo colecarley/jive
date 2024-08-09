@@ -1,6 +1,6 @@
 use crate::parser::{
-    Assignment, Comparison, DeclarationStatement, Equality, ExpressionStatement, Factor, Primary,
-    PrintStatement, Term, Unary,
+    expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
+    statement::{DeclarationStatement, ExpressionStatement, PrintStatement},
 };
 
 pub mod ast_printer;

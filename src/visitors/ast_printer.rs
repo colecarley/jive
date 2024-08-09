@@ -1,6 +1,7 @@
 use crate::parser::{
-    Accept, Assignment, Comparison, DeclarationStatement, Equality, ExpressionStatement, Factor,
-    Primary, PrintStatement, Statement, Term, Unary,
+    accept::Accept,
+    expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
+    statement::{DeclarationStatement, ExpressionStatement, PrintStatement, Statement},
 };
 
 pub struct AstPrinter {}

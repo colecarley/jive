@@ -2,11 +2,15 @@ use std::collections::HashMap;
 
 use crate::{
     parser::{
-        Accept, Assignment, Comparison, DeclarationStatement, Equality, ExpressionStatement,
-        Factor, Primary, PrintStatement, Statement, Term, Unary,
+        accept::Accept,
+        expression::{Assignment, Comparison, Equality, Factor, Primary, Term, Unary},
+        statement::{DeclarationStatement, ExpressionStatement, PrintStatement, Statement},
     },
     token::TokenType,
 };
+
+pub mod value;
+use value::Value;
 
 pub struct Interpreter {
     pub globals: HashMap<String, Value>,
@@ -158,79 +162,5 @@ impl super::Visitor for Interpreter {
             .insert(declaration_statement.identifier.lexeme.clone(), Value::Nil);
 
         Value::Nil
-    }
-}
-
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub enum Value {
-    Number(f64),
-    Boolean(bool),
-    String(String),
-    Nil,
-}
-
-impl std::ops::Add for Value {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self {
-        match (self, other) {
-            (Value::Number(left), Value::Number(right)) => Value::Number(left + right),
-            _ => panic!("Operands must be numbers"),
-        }
-    }
-}
-
-impl std::ops::Sub for Value {
-    type Output = Self;
-
-    fn sub(self, other: Self) -> Self {
-        match (self, other) {
-            (Value::Number(left), Value::Number(right)) => Value::Number(left - right),
-            _ => panic!("Operands must be numbers"),
-        }
-    }
-}
-
-impl std::ops::Mul for Value {
-    type Output = Self;
-
-    fn mul(self, other: Self) -> Self {
-        match (self, other) {
-            (Value::Number(left), Value::Number(right)) => Value::Number(left * right),
-            _ => panic!("Operands must be numbers"),
-        }
-    }
-}
-
-impl std::ops::Div for Value {
-    type Output = Self;
-
-    fn div(self, other: Self) -> Self {
-        match (self, other) {
-            (Value::Number(left), Value::Number(right)) => Value::Number(left / right),
-            _ => panic!("Operands must be numbers"),
-        }
-    }
-}
-
-impl std::ops::Neg for Value {
-    type Output = Self;
-
-    fn neg(self) -> Self {
-        match self {
-            Value::Number(right) => Value::Number(-right),
-            _ => panic!("Unary operator - can only be applied to numbers"),
-        }
-    }
-}
-
-impl std::ops::Not for Value {
-    type Output = Self;
-
-    fn not(self) -> Self {
-        match self {
-            Value::Boolean(right) => Value::Boolean(!right),
-            _ => panic!("Unary operator ! can only be applied to booleans"),
-        }
     }
 }
