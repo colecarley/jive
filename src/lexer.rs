@@ -119,8 +119,8 @@ impl Lexer {
                         self.add_token(TokenType::Slash, c);
                     }
                 }
-                '"' => {
-                    self.handle_string();
+                '"' | '\'' | '`' => {
+                    self.handle_string(self.peek());
                 }
                 ',' => {
                     let c = self.advance().to_string();
@@ -145,12 +145,12 @@ impl Lexer {
         self.tokens.clone()
     }
 
-    fn handle_string(&mut self) {
+    fn handle_string(&mut self, character: char) {
         self.advance();
 
         let mut value = String::new();
 
-        while !self.is_at_end() && self.peek() != '"' && !self.is_at_end() {
+        while !self.is_at_end() && self.peek() != character && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line_number += 1;
             }
@@ -163,7 +163,14 @@ impl Lexer {
 
         self.advance();
 
-        self.add_token(TokenType::String, value);
+        self.add_token(
+            if character == '`' {
+                TokenType::EscapedString
+            } else {
+                TokenType::String
+            },
+            value,
+        );
     }
 
     fn handle_number(&mut self) {

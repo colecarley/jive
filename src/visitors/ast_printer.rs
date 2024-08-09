@@ -1,8 +1,11 @@
 use crate::parser::{
     accept::Accept,
-    expression::{Assignment, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary},
+    expression::{
+        Assignment, Call, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
+    },
     statement::{
         Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
+        WhileStatement,
     },
 };
 
@@ -166,14 +169,23 @@ impl super::Visitor for AstPrinter {
         format!("({} or {})", or.left.accept(self), or.right.accept(self))
     }
 
-    fn visit_while_statement(
-        &mut self,
-        while_statement: &crate::parser::statement::WhileStatement,
-    ) -> Self::Output {
+    fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output {
         format!(
             "while ({}) do {}",
             while_statement.condition.accept(self),
             while_statement.body.accept(self)
+        )
+    }
+
+    fn visit_call(&mut self, call: &Call) -> Self::Output {
+        format!(
+            "{}({})",
+            call.identifier.accept(self),
+            call.arguments
+                .iter()
+                .map(|arg| arg.accept(self))
+                .collect::<Vec<String>>()
+                .join(", ")
         )
     }
 }

@@ -11,6 +11,7 @@ pub enum TokenType {
     Number,
     Identifier,
     String,
+    EscapedString,
     Boolean,
     Nil,
 

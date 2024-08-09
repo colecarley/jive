@@ -2,11 +2,11 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            Assignment, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
+            Assignment, Call, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
         },
         statement::{
             Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
-            Statement,
+            Statement, WhileStatement,
         },
     },
     token::TokenType,
@@ -20,9 +20,12 @@ pub struct TypeChecker {
 
 impl TypeChecker {
     pub fn new() -> Self {
-        TypeChecker {
-            environment: Environment::<TokenType>::new(),
-        }
+        let mut environment = Environment::<TokenType>::new();
+        environment.declare_global("clock".to_string(), TokenType::Identifier);
+        environment.declare_global("println".to_string(), TokenType::Identifier);
+        environment.declare_global("input".to_string(), TokenType::Identifier);
+
+        TypeChecker { environment }
     }
 
     pub fn check(&mut self, statements: &Vec<Statement>) {
@@ -251,10 +254,7 @@ impl super::Visitor for TypeChecker {
         TokenType::Boolean
     }
 
-    fn visit_while_statement(
-        &mut self,
-        while_statement: &crate::parser::statement::WhileStatement,
-    ) -> Self::Output {
+    fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output {
         let condition_type = while_statement.condition.accept(self);
         if condition_type != TokenType::Boolean {
             panic!("Condition must be a boolean");
@@ -266,6 +266,21 @@ impl super::Visitor for TypeChecker {
             panic!("Body must not return a value, but got {:?}", body_type);
         }
 
+        TokenType::Nil
+    }
+
+    fn visit_call(&mut self, call: &Call) -> Self::Output {
+        let callee_type = call.identifier.accept(self);
+        // TODO: figure out a way to determine the type of the callee
+        if callee_type != TokenType::Identifier {
+            panic!("Callee must be a function");
+        }
+
+        for argument in &call.arguments {
+            argument.accept(self);
+        }
+
+        // we don't know what the type of the function is, so just return nil
         TokenType::Nil
     }
 }

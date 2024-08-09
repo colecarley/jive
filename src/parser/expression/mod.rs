@@ -1,5 +1,6 @@
 pub mod and;
 pub mod assignment;
+pub mod call;
 pub mod comparison;
 pub mod equality;
 pub mod factor;
@@ -11,6 +12,7 @@ pub mod unary;
 
 pub use and::And;
 pub use assignment::Assignment;
+pub use call::Call;
 pub use comparison::Comparison;
 pub use equality::Equality;
 pub use factor::Factor;
@@ -35,6 +37,7 @@ pub enum Expression {
     Primary(Box<Primary>),
     Or(Box<Or>),
     And(Box<And>),
+    Call(Box<Call>),
 }
 
 impl Accept for Expression {
@@ -50,6 +53,7 @@ impl Accept for Expression {
             Expression::IfExpression(cond) => cond.accept(visitor),
             Expression::Or(or) => or.accept(visitor),
             Expression::And(and) => and.accept(visitor),
+            Expression::Call(call) => call.accept(visitor),
         }
     }
 }

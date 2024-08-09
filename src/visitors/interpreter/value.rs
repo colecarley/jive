@@ -1,8 +1,11 @@
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+use super::callable::BuiltIn;
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
     Number(f64),
     Boolean(bool),
     String(String),
+    BuiltIn(BuiltIn),
     Nil,
 }
 
@@ -68,6 +71,18 @@ impl std::ops::Not for Value {
         match self {
             Value::Boolean(right) => Value::Boolean(!right),
             _ => panic!("Unary operator ! can only be applied to booleans"),
+        }
+    }
+}
+
+impl ToString for Value {
+    fn to_string(&self) -> String {
+        match self {
+            Value::Number(number) => number.to_string(),
+            Value::Boolean(boolean) => boolean.to_string(),
+            Value::String(string) => string.clone(),
+            Value::BuiltIn(callable) => format!("{:?}", callable),
+            Value::Nil => "nil".to_string(),
         }
     }
 }

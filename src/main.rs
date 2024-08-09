@@ -112,6 +112,10 @@ fn main() {
                 x = x + 1;
             }
         }
+
+        print clock();
+
+        println(\"Hello there \", 3);
         "
     .to_string();
 

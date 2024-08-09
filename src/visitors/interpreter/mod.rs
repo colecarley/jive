@@ -2,7 +2,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            And, Assignment, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
+            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Or, Primary, Term,
+            Unary,
         },
         statement::{
             Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
@@ -12,11 +13,12 @@ use crate::{
     token::TokenType,
 };
 
+pub mod callable;
 pub mod value;
 
-use value::Value;
-
 use super::environment::Environment;
+use callable::{BuiltIn, Callable};
+use value::Value;
 
 pub struct Interpreter {
     environment: Environment<Value>,
@@ -24,9 +26,22 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new() -> Self {
-        Interpreter {
-            environment: Environment::<Value>::new(),
-        }
+        let mut environment = Environment::<Value>::new();
+
+        environment.declare_global(
+            "clock".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(0), callable::clock)),
+        );
+        environment.declare_global(
+            "println".to_string(),
+            Value::BuiltIn(BuiltIn::new(None, callable::println)),
+        );
+        environment.declare_global(
+            "input".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(0), callable::input)),
+        );
+
+        Interpreter { environment }
     }
 
     pub fn evaluate(&mut self, statements: &Vec<Statement>) -> Value {
@@ -56,6 +71,7 @@ impl Interpreter {
         Value::Nil
     }
 }
+
 impl super::Visitor for Interpreter {
     type Output = Value;
 
@@ -146,6 +162,7 @@ impl super::Visitor for Interpreter {
             Value::Number(number) => println!("{}", number),
             Value::Boolean(boolean) => println!("{}", boolean),
             Value::String(string) => println!("{}", string),
+            Value::BuiltIn(callable) => println!("{:?}", callable),
             Value::Nil => println!("nil"),
         }
 
@@ -229,5 +246,31 @@ impl super::Visitor for Interpreter {
         }
 
         Value::Nil
+    }
+
+    fn visit_call(&mut self, call: &Call) -> Self::Output {
+        let callee = call.identifier.accept(self);
+
+        let mut arguments = Vec::new();
+
+        for argument in &call.arguments {
+            arguments.push(argument.accept(self));
+        }
+
+        match callee {
+            Value::BuiltIn(callable) => {
+                if callable.arity.is_none() {
+                    return callable.call(self, arguments);
+                }
+
+                let arity = callable.arity.unwrap();
+                if arguments.len() != arity {
+                    panic!("Expected {} arguments but got {}", arity, arguments.len());
+                }
+
+                callable.call(self, arguments)
+            }
+            _ => panic!("Can only call functions and classes"),
+        }
     }
 }

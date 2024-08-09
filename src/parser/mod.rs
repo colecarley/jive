@@ -1,6 +1,7 @@
 /*
 program → statement* EOF ;
 statement → printStatement | declarationStatement | expressionStatement | ifStatement | block | whileStatement ;
+whileStatement → "while" expression statement ;
 ifStatement → "if"  expression  '{' statement '}' ( "else" '{' statement '}' )? ;
 block → "{" statement* "}" ;
 expression → assignment ;
@@ -13,7 +14,8 @@ comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term → factor ( ( "-" | "+" ) factor )* ;
 factor → unary ( ( "/" | "*" ) unary )* ;
 unary → ("!"|"-") unary
-        | primary ;
+        | call ;
+call → primary ( "(" arguments? ")" )* ;
 primary → NUMBER | STRING | "true" | "false" | "nil"
         | "(" expression ")" ;
  */
@@ -25,8 +27,8 @@ pub mod expression;
 pub mod statement;
 
 use expression::{
-    And, Assignment, Comparison, Equality, Expression, Factor, IfExpression, Or, Primary, Term,
-    Unary,
+    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Or, Primary,
+    Term, Unary,
 };
 use statement::{
     Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
@@ -322,8 +324,44 @@ impl Parser {
             let right = self.unary();
             return Expression::Unary(Box::new(Unary::new(operator, right)));
         } else {
-            return self.primary();
+            return self.call();
         }
+    }
+
+    fn call(&mut self) -> Expression {
+        let mut identifier = self.primary();
+
+        while self.peek().token_type == TokenType::LParen {
+            self.advance();
+            let arguments = self.arguments();
+            identifier = Expression::Call(Box::new(Call {
+                identifier,
+                arguments,
+            }));
+        }
+
+        identifier
+    }
+
+    fn arguments(&mut self) -> Vec<Expression> {
+        let mut arguments = vec![];
+
+        if self.peek().token_type != TokenType::RParen {
+            println!("Peek: {:?}", self.peek().token_type);
+            arguments.push(self.expression());
+
+            while self.peek().token_type == TokenType::Comma {
+                self.advance();
+                arguments.push(self.expression());
+            }
+
+            if self.peek().token_type != TokenType::RParen {
+                panic!("Expected ')' after arguments");
+            }
+        }
+
+        self.advance();
+        return arguments;
     }
 
     fn primary(&mut self) -> Expression {

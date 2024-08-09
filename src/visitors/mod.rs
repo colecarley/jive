@@ -1,6 +1,6 @@
 use crate::parser::{
     expression::{
-        And, Assignment, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
+        And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
     },
     statement::{
         Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
@@ -53,4 +53,6 @@ pub trait Visitor {
     fn visit_or(&mut self, or: &Or) -> Self::Output;
 
     fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output;
+
+    fn visit_call(&mut self, call: &Call) -> Self::Output;
 }

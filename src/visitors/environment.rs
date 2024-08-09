@@ -14,6 +14,13 @@ impl<T: Clone> Environment<T> {
         }
     }
 
+    pub fn declare_global(&mut self, identifier: String, value: T) {
+        if let Some(enclosing) = &mut self.enclosing {
+            enclosing.declare_global(identifier.clone(), value.clone());
+        }
+        self.values.insert(identifier, value);
+    }
+
     pub fn get(&self, identifier: String) -> T {
         if self.values.contains_key(&identifier) {
             return self.values.get(&identifier).unwrap().clone();
