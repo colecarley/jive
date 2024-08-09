@@ -19,6 +19,8 @@ pub enum TokenType {
     Make,
     If,
     Else,
+    And,
+    Or,
 
     // Single-character tokens
     Plus,
@@ -41,8 +43,6 @@ pub enum TokenType {
     BangEqual,
     GreaterEqual,
     LessEqual,
-    AndAnd,
-    OrOr,
 
     // EOF
     EOF,

@@ -222,7 +222,7 @@ impl Parser {
     fn or(&mut self) -> Expression {
         let mut first = self.and();
 
-        while self.peek().token_type == TokenType::OrOr {
+        while self.peek().token_type == TokenType::Or {
             self.advance();
             let right = self.and();
             first = Expression::Or(Box::new(Or { left: first, right }));
@@ -234,7 +234,7 @@ impl Parser {
     fn and(&mut self) -> Expression {
         let mut first = self.equality();
 
-        while self.peek().token_type == TokenType::AndAnd {
+        while self.peek().token_type == TokenType::And {
             self.advance();
             let right = self.equality();
             first = Expression::And(Box::new(And { left: first, right }));

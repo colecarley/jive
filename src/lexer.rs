@@ -8,7 +8,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    const KEYWORDS: [(&'static str, TokenType); 7] = [
+    const KEYWORDS: [(&'static str, TokenType); 9] = [
         ("true", TokenType::Boolean),
         ("false", TokenType::Boolean),
         ("nil", TokenType::Nil),
@@ -16,6 +16,8 @@ impl Lexer {
         ("make", TokenType::Make),
         ("if", TokenType::If),
         ("else", TokenType::Else),
+        ("and", TokenType::And),
+        ("or", TokenType::Or),
     ];
 
     pub fn new(input: String) -> Lexer {
@@ -107,26 +109,6 @@ impl Lexer {
                         self.add_token(TokenType::GreaterEqual, c);
                     } else {
                         self.add_token(TokenType::Greater, c);
-                    }
-                    self.advance();
-                }
-                '&' => {
-                    let mut c = self.advance().to_string();
-                    if self.peek() == '&' {
-                        c.push(self.advance());
-                        self.add_token(TokenType::AndAnd, c);
-                    } else {
-                        panic!("Unexpected character: {}", self.peek());
-                    }
-                    self.advance();
-                }
-                '|' => {
-                    let mut c = self.advance().to_string();
-                    if self.peek() == '|' {
-                        c.push(self.advance());
-                        self.add_token(TokenType::OrOr, c);
-                    } else {
-                        panic!("Unexpected character: {}", self.peek());
                     }
                     self.advance();
                 }

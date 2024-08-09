@@ -99,14 +99,13 @@ fn main() {
         print y;
         print z;
 
-        print true && true;
+        print true and true;
 
-        print true && false;
+        print true and false;
 
-        print true || false;
+        print true or false;
 
-        print false || false;
-
+        print false or false;
         "
     .to_string();
 
