@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::{
     parser::{
         accept::Accept,
@@ -9,17 +7,20 @@ use crate::{
     token::TokenType,
 };
 
+pub mod environment;
 pub mod value;
+
+use environment::Environment;
 use value::Value;
 
 pub struct Interpreter {
-    pub globals: HashMap<String, Value>,
+    environment: Environment,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
-            globals: HashMap::new(),
+            environment: Environment::new(),
         }
     }
 
@@ -46,12 +47,8 @@ impl super::Visitor for Interpreter {
 
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let value = assignment.value.accept(self);
-        if self.globals.contains_key(&assignment.identifier.lexeme) {
-            self.globals
-                .insert(assignment.identifier.lexeme.clone(), value.clone());
-        } else {
-            panic!("Undefined variable {}", assignment.identifier.lexeme);
-        }
+        self.environment
+            .insert(assignment.identifier.lexeme.clone(), value);
 
         Value::Nil
     }
@@ -115,13 +112,7 @@ impl super::Visitor for Interpreter {
             TokenType::Number => Value::Number(primary.value.lexeme.parse().unwrap()),
             TokenType::Boolean => Value::Boolean(primary.value.lexeme == "true"),
             TokenType::String => Value::String(primary.value.lexeme.clone()),
-            TokenType::Identifier => {
-                if self.globals.contains_key(&primary.value.lexeme) {
-                    self.globals.get(&primary.value.lexeme).unwrap().clone()
-                } else {
-                    panic!("Undefined variable {}", primary.value.lexeme)
-                }
-            }
+            TokenType::Identifier => self.environment.get(primary.value.lexeme.clone()),
             TokenType::Nil => Value::Nil,
             _ => panic!("Unexpected token type"),
         }
@@ -153,12 +144,12 @@ impl super::Visitor for Interpreter {
     ) -> Self::Output {
         if let Some(expression) = &declaration_statement.expression {
             let value = expression.accept(self);
-            self.globals
+            self.environment
                 .insert(declaration_statement.identifier.lexeme.clone(), value);
 
             return Value::Nil;
         }
-        self.globals
+        self.environment
             .insert(declaration_statement.identifier.lexeme.clone(), Value::Nil);
 
         Value::Nil
