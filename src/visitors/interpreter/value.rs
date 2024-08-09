@@ -1,6 +1,6 @@
 use super::callable::{BuiltIn, Function};
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone)]
 pub enum Value {
     Number(f64),
     Boolean(bool),
@@ -61,6 +61,27 @@ impl std::ops::Neg for Value {
         match self {
             Value::Number(right) => Value::Number(-right),
             _ => panic!("Unary operator - can only be applied to numbers"),
+        }
+    }
+}
+
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Value::Number(left), Value::Number(right)) => left == right,
+            (Value::Boolean(left), Value::Boolean(right)) => left == right,
+            (Value::String(left), Value::String(right)) => left == right,
+            (Value::Nil, Value::Nil) => true,
+            _ => false,
+        }
+    }
+}
+
+impl PartialOrd for Value {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (self, other) {
+            (Value::Number(left), Value::Number(right)) => left.partial_cmp(right),
+            _ => panic!("Operands must be numbers"),
         }
     }
 }

@@ -65,6 +65,10 @@ impl super::Visitor for TypeChecker {
         let left_type = comparison.left.accept(self);
         let right_type = comparison.right.accept(self);
 
+        if left_type == Type::Unknown || right_type == Type::Unknown {
+            return Type::Boolean;
+        }
+
         if left_type != Type::Number || right_type != Type::Number {
             panic!("Operands must be numbers");
         }
@@ -179,7 +183,7 @@ impl super::Visitor for TypeChecker {
 
     fn visit_if_statement(&mut self, if_statemnet: &IfStatement) -> Self::Output {
         let condition_type = if_statemnet.condition.accept(self);
-        if condition_type != Type::Boolean {
+        if condition_type != Type::Boolean || condition_type == Type::Unknown {
             panic!("Condition must be a boolean");
         }
 
@@ -208,22 +212,24 @@ impl super::Visitor for TypeChecker {
 
     fn visit_if_expression(&mut self, if_expression: &IfExpression) -> Self::Output {
         let condition_type = if_expression.condition.accept(self);
-        if condition_type != Type::Boolean {
+
+        if condition_type != Type::Boolean || condition_type == Type::Unknown {
             panic!("Condition must be a boolean");
         }
 
-        // it doesn't matter if then_branch and else_branch are of the same type, but check the sub-expressions
         if_expression.then_branch.accept(self);
         if_expression.else_branch.accept(self);
 
-        Type::Nil
+        Type::Unknown
     }
 
     fn visit_and(&mut self, and: &crate::parser::expression::And) -> Self::Output {
         let left_type = and.left.accept(self);
         let right_type = and.right.accept(self);
 
-        if left_type != Type::Boolean || right_type != Type::Boolean {
+        if (left_type != Type::Boolean || left_type == Type::Unknown)
+            || (right_type != Type::Boolean || left_type == Type::Unknown)
+        {
             panic!("Operands must be booleans");
         }
 
@@ -234,7 +240,9 @@ impl super::Visitor for TypeChecker {
         let left_type = or.left.accept(self);
         let right_type = or.right.accept(self);
 
-        if left_type != Type::Boolean || right_type != Type::Boolean {
+        if (left_type != Type::Boolean || left_type == Type::Unknown)
+            || (right_type != Type::Boolean || right_type == Type::Unknown)
+        {
             panic!("Operands must be booleans");
         }
 
@@ -243,7 +251,7 @@ impl super::Visitor for TypeChecker {
 
     fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output {
         let condition_type = while_statement.condition.accept(self);
-        if condition_type != Type::Boolean {
+        if condition_type != Type::Boolean || condition_type == Type::Unknown {
             panic!("Condition must be a boolean");
         }
 
@@ -258,8 +266,7 @@ impl super::Visitor for TypeChecker {
 
     fn visit_call(&mut self, call: &Call) -> Self::Output {
         let callee_type = call.identifier.accept(self);
-        // TODO: figure out a way to determine the type of the callee
-        if callee_type != Type::Function {
+        if callee_type != Type::Function || callee_type == Type::Unknown {
             panic!("Callee must be a function");
         }
 
@@ -267,8 +274,7 @@ impl super::Visitor for TypeChecker {
             argument.accept(self);
         }
 
-        // we don't know what the type of the function is, so just return nil
-        Type::Nil
+        Type::Unknown
     }
 
     fn visit_function_declaration(

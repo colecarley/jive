@@ -129,7 +129,11 @@ fn main() {
             input();
         }
 
-        print get_input();
+        funk recurse(i) {
+            print i + 1;
+        }
+
+        recurse(2);
 
         "
     .to_string();
@@ -143,8 +147,8 @@ fn main() {
     let mut parser = Parser::new(lexer.tokens);
     let statements = parser.parse();
 
-    let mut ast_printer = visitors::ast_printer::AstPrinter::new();
-    ast_printer.print(&statements);
+    // let mut ast_printer = visitors::ast_printer::AstPrinter::new();
+    // ast_printer.print(&statements);
 
     let mut type_checker = visitors::type_checker::TypeChecker::new();
     type_checker.check(&statements);
