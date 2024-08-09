@@ -6,7 +6,7 @@ use crate::{
         },
         statement::{
             Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
-            Statement,
+            Statement, WhileStatement,
         },
     },
     token::TokenType,
@@ -47,6 +47,9 @@ impl Interpreter {
                 Statement::IfStatement(if_statement) => {
                     if_statement.accept(self);
                 }
+                Statement::WhileStatement(while_statement) => {
+                    while_statement.accept(self);
+                }
             }
         }
 
@@ -59,7 +62,7 @@ impl super::Visitor for Interpreter {
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let value = assignment.value.accept(self);
         self.environment
-            .insert(assignment.identifier.lexeme.clone(), value.clone());
+            .assign(assignment.identifier.lexeme.clone(), value.clone());
 
         value
     }
@@ -156,27 +159,26 @@ impl super::Visitor for Interpreter {
         if let Some(expression) = &declaration_statement.expression {
             let value = expression.accept(self);
             self.environment
-                .insert(declaration_statement.identifier.lexeme.clone(), value);
+                .declare(declaration_statement.identifier.lexeme.clone(), value);
 
             return Value::Nil;
         }
         self.environment
-            .insert(declaration_statement.identifier.lexeme.clone(), Value::Nil);
+            .declare(declaration_statement.identifier.lexeme.clone(), Value::Nil);
 
         Value::Nil
     }
 
     fn visit_block(&mut self, block: &Block) -> Self::Output {
         let mut new_environment = Environment::new();
-        new_environment.enclose(&self.environment);
-        let previous_environment = self.environment.clone();
-        self.environment = new_environment;
+        new_environment.enclose(&Box::new(self.environment.clone()));
+        self.environment = new_environment.clone();
 
         for statement in &block.statements {
             statement.accept(self);
         }
 
-        self.environment = previous_environment;
+        self.environment = *self.environment.get_enclosing();
         Value::Nil
     }
 
@@ -219,5 +221,13 @@ impl super::Visitor for Interpreter {
         }
 
         or.right.accept(self)
+    }
+
+    fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output {
+        while while_statement.condition.accept(self) == Value::Boolean(true) {
+            while_statement.body.accept(self);
+        }
+
+        Value::Nil
     }
 }

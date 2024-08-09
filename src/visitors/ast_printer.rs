@@ -32,6 +32,9 @@ impl AstPrinter {
                 Statement::IfStatement(if_statement) => {
                     result.push_str(&if_statement.accept(self));
                 }
+                Statement::WhileStatement(while_statement) => {
+                    result.push_str(&while_statement.accept(self));
+                }
             }
             result.push('\n');
         }
@@ -161,5 +164,16 @@ impl super::Visitor for AstPrinter {
 
     fn visit_or(&mut self, or: &crate::parser::expression::Or) -> Self::Output {
         format!("({} or {})", or.left.accept(self), or.right.accept(self))
+    }
+
+    fn visit_while_statement(
+        &mut self,
+        while_statement: &crate::parser::statement::WhileStatement,
+    ) -> Self::Output {
+        format!(
+            "while ({}) do {}",
+            while_statement.condition.accept(self),
+            while_statement.body.accept(self)
+        )
     }
 }

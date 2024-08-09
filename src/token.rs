@@ -21,6 +21,7 @@ pub enum TokenType {
     Else,
     And,
     Or,
+    While,
 
     // Single-character tokens
     Plus,

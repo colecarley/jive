@@ -7,12 +7,14 @@ pub mod declaration;
 pub mod expression;
 pub mod if_statement;
 pub mod print;
+pub mod while_statement;
 
 pub use block::Block;
 pub use declaration::DeclarationStatement;
 pub use expression::ExpressionStatement;
 pub use if_statement::IfStatement;
 pub use print::PrintStatement;
+pub use while_statement::WhileStatement;
 
 pub enum Statement {
     ExpressionStatement(Box<ExpressionStatement>),
@@ -20,6 +22,7 @@ pub enum Statement {
     DeclarationStatement(Box<DeclarationStatement>),
     Block(Box<Block>),
     IfStatement(Box<IfStatement>),
+    WhileStatement(Box<WhileStatement>),
 }
 
 impl Accept for Statement {
@@ -36,6 +39,9 @@ impl Accept for Statement {
             }
             Statement::Block(block) => visitor.visit_block(block),
             Statement::IfStatement(if_statement) => visitor.visit_if_statement(if_statement),
+            Statement::WhileStatement(while_statement) => {
+                visitor.visit_while_statement(while_statement)
+            }
         }
     }
 }

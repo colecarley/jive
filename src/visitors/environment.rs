@@ -25,11 +25,26 @@ impl<T: Clone> Environment<T> {
         }
     }
 
-    pub fn insert(&mut self, identifier: String, value: T) {
+    pub fn declare(&mut self, identifier: String, value: T) {
         self.values.insert(identifier, value);
     }
 
-    pub fn enclose(&mut self, enclosing: &Environment<T>) {
-        self.enclosing = Some(Box::new(enclosing.clone()));
+    pub fn assign(&mut self, identifier: String, value: T) {
+        if self.values.contains_key(&identifier) {
+            self.values.insert(identifier, value);
+        } else {
+            match &mut self.enclosing {
+                Some(enclosing) => enclosing.assign(identifier, value),
+                None => panic!("Undefined variable {}", identifier),
+            }
+        }
+    }
+
+    pub fn enclose(&mut self, enclosing: &Box<Environment<T>>) {
+        self.enclosing = Some(enclosing.clone());
+    }
+
+    pub fn get_enclosing(&self) -> Box<Environment<T>> {
+        self.enclosing.clone().expect("No enclosing environment")
     }
 }

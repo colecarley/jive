@@ -2,7 +2,10 @@ use crate::parser::{
     expression::{
         And, Assignment, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
     },
-    statement::{Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement},
+    statement::{
+        Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement,
+        WhileStatement,
+    },
 };
 
 pub mod ast_printer;
@@ -48,4 +51,6 @@ pub trait Visitor {
     fn visit_and(&mut self, and: &And) -> Self::Output;
 
     fn visit_or(&mut self, or: &Or) -> Self::Output;
+
+    fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output;
 }

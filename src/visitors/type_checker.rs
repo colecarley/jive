@@ -43,6 +43,9 @@ impl TypeChecker {
                 Statement::IfStatement(if_statement) => {
                     if_statement.accept(self);
                 }
+                Statement::WhileStatement(while_statement) => {
+                    while_statement.accept(self);
+                }
             }
         }
     }
@@ -54,7 +57,7 @@ impl super::Visitor for TypeChecker {
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let value_type = assignment.value.accept(self);
         self.environment
-            .insert(assignment.identifier.lexeme.clone(), value_type.clone());
+            .assign(assignment.identifier.lexeme.clone(), value_type.clone());
 
         value_type
     }
@@ -157,12 +160,12 @@ impl super::Visitor for TypeChecker {
         if let Some(expression) = &declaration_statement.expression {
             let value_type = expression.accept(self);
             self.environment
-                .insert(declaration_statement.identifier.lexeme.clone(), value_type);
+                .declare(declaration_statement.identifier.lexeme.clone(), value_type);
 
             return TokenType::Nil;
         }
 
-        self.environment.insert(
+        self.environment.declare(
             declaration_statement.identifier.lexeme.clone(),
             TokenType::Nil,
         );
@@ -171,16 +174,15 @@ impl super::Visitor for TypeChecker {
     }
 
     fn visit_block(&mut self, block: &Block) -> Self::Output {
-        let mut new_environment = Environment::<TokenType>::new();
-        new_environment.enclose(&self.environment);
-        let previous_environment = self.environment.clone();
-        self.environment = new_environment;
+        let mut new_environment = Environment::new();
+        new_environment.enclose(&Box::new(self.environment.clone()));
+        self.environment = new_environment.clone();
 
         for statement in &block.statements {
             statement.accept(self);
         }
 
-        self.environment = previous_environment;
+        self.environment = *self.environment.get_enclosing();
 
         TokenType::Nil
     }
@@ -247,5 +249,23 @@ impl super::Visitor for TypeChecker {
         }
 
         TokenType::Boolean
+    }
+
+    fn visit_while_statement(
+        &mut self,
+        while_statement: &crate::parser::statement::WhileStatement,
+    ) -> Self::Output {
+        let condition_type = while_statement.condition.accept(self);
+        if condition_type != TokenType::Boolean {
+            panic!("Condition must be a boolean");
+        }
+
+        let body_type = while_statement.body.accept(self);
+
+        if body_type != TokenType::Nil {
+            panic!("Body must not return a value, but got {:?}", body_type);
+        }
+
+        TokenType::Nil
     }
 }

@@ -1,6 +1,6 @@
 /*
 program → statement* EOF ;
-statement → printStatement | declarationStatement | expressionStatement | ifStatement | block ;
+statement → printStatement | declarationStatement | expressionStatement | ifStatement | block | whileStatement ;
 ifStatement → "if"  expression  '{' statement '}' ( "else" '{' statement '}' )? ;
 block → "{" statement* "}" ;
 expression → assignment ;
@@ -30,6 +30,7 @@ use expression::{
 };
 use statement::{
     Block, DeclarationStatement, ExpressionStatement, IfStatement, PrintStatement, Statement,
+    WhileStatement,
 };
 
 pub struct Parser {
@@ -61,17 +62,24 @@ impl Parser {
             TokenType::Make => return self.declaration_statement(),
             TokenType::LBrace => return self.block(),
             TokenType::If => return self.if_statement(),
+            TokenType::While => return self.while_statement(),
             _ => return self.expression_statement(),
         }
+    }
+
+    fn while_statement(&mut self) -> Statement {
+        self.advance();
+        return Statement::WhileStatement(Box::new(WhileStatement {
+            condition: self.expression(),
+            body: self.statement(),
+        }));
     }
 
     fn if_statement(&mut self) -> Statement {
         self.advance();
 
         let condition = self.expression();
-
         let then_branch = self.statement();
-
         let else_branch = if self.peek().token_type == TokenType::Else {
             self.advance();
 

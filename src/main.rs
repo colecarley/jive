@@ -104,6 +104,14 @@ fn main() {
         print true or false;
         print false or false;
         print !true;
+
+        {
+        make x = 0;
+            while x < 10 {
+                print x;
+                x = x + 1;
+            }
+        }
         "
     .to_string();
 
