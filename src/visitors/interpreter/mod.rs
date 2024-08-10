@@ -4,8 +4,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Or, Primary, Term,
-            Unary,
+            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Or, Primary,
+            Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -173,6 +173,13 @@ impl super::Visitor for Interpreter {
             Value::String(string) => println!("{}", string),
             Value::BuiltIn(callable) => println!("{:?}", callable),
             Value::Function(function) => println!("{:?}", function),
+            Value::List(list) => println!(
+                "[{}]",
+                list.iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::Nil => println!("nil"),
         }
 
@@ -354,5 +361,20 @@ impl super::Visitor for Interpreter {
 
         self.environment = new_environment.borrow_mut().get_enclosing();
         (Value::Nil, false)
+    }
+
+    fn visit_list(&mut self, list: &List) -> Self::Output {
+        (
+            Value::List(
+                list.values
+                    .iter()
+                    .map(|v| {
+                        let (result, _) = v.accept(self);
+                        result
+                    })
+                    .collect::<Vec<Value>>(),
+            ),
+            false,
+        )
     }
 }

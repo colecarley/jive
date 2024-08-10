@@ -4,7 +4,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            Assignment, Call, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
+            Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Primary, Term,
+            Unary,
         },
         statement::{
             Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -358,5 +359,13 @@ impl super::Visitor for TypeChecker {
         self.environment = new_environment.borrow_mut().get_enclosing();
 
         Type::Nil
+    }
+
+    fn visit_list(&mut self, list: &List) -> Self::Output {
+        for value in list.values.iter() {
+            value.accept(self);
+        }
+
+        Type::List
     }
 }

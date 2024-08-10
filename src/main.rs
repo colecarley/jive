@@ -16,6 +16,9 @@ fn main() {
 
     let mut lexer = Lexer::new(code);
     lexer.lex();
+    for token in lexer.tokens.iter() {
+        println!("{:?}", token);
+    }
 
     let mut parser = Parser::new(lexer.tokens);
     let statements = parser.parse();

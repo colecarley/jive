@@ -1,6 +1,7 @@
 use crate::parser::{
     expression::{
-        And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
+        And, Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Or, Primary, Term,
+        Unary,
     },
     statement::{
         Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -64,4 +65,6 @@ pub trait Visitor {
     fn visit_return(&mut self, return_statement: &Return) -> Self::Output;
 
     fn visit_with_statement(&mut self, with_statement: &With) -> Self::Output;
+
+    fn visit_list(&mut self, list: &List) -> Self::Output;
 }

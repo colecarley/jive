@@ -36,6 +36,8 @@ pub enum TokenType {
     RParen,
     LBrace,
     RBrace,
+    LBracket,
+    RBracket,
     Equal,
     Bang,
     Less,

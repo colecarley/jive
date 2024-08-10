@@ -1,7 +1,7 @@
 use crate::parser::{
     accept::Accept,
     expression::{
-        Assignment, Call, Comparison, Equality, Factor, IfExpression, Primary, Term, Unary,
+        Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Primary, Term, Unary,
     },
     statement::{
         Block, ExpressionStatement, IfStatement, PrintStatement, Return, Statement,
@@ -203,6 +203,17 @@ impl super::Visitor for AstPrinter {
             with_statement.value.accept(self),
             with_statement.identifier.lexeme,
             with_statement.body.accept(self)
+        )
+    }
+
+    fn visit_list(&mut self, list: &List) -> Self::Output {
+        format!(
+            "[{}]",
+            list.values
+                .iter()
+                .map(|v| v.accept(self))
+                .collect::<Vec<String>>()
+                .join(", ")
         )
     }
 }

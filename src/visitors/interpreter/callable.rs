@@ -78,6 +78,13 @@ pub fn println(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
             Value::String(string) => print!("{}", string),
             Value::BuiltIn(callable) => print!("{:?}", callable),
             Value::Function(function) => print!("{:?}", function),
+            Value::List(list) => print!(
+                "[{}]",
+                list.iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::Nil => println!("nil"),
         }
     }

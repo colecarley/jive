@@ -32,8 +32,8 @@ pub mod expression;
 pub mod statement;
 
 use expression::{
-    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Or, Primary,
-    Term, Unary,
+    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, List, Or,
+    Primary, Term, Unary,
 };
 use statement::{
     Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -459,6 +459,9 @@ impl Parser {
                 let value = self.advance();
                 return Expression::Primary(Box::new(Primary::new(value)));
             }
+            TokenType::LBracket => {
+                return self.list();
+            }
             TokenType::LParen => {
                 self.advance();
                 let expression = self.expression();
@@ -468,8 +471,31 @@ impl Parser {
                 self.advance();
                 return expression;
             }
-            _ => panic!("Unexpected token, {:?}", self.peek().token_type),
+            _ => panic!("Unexpected token, {:?}", self.advance().token_type),
         }
+    }
+
+    fn list(&mut self) -> Expression {
+        self.advance();
+
+        let mut values = Vec::new();
+        if self.peek().token_type != TokenType::RBracket {
+            let expression = self.expression();
+            values.push(expression);
+
+            while self.peek().token_type == TokenType::Comma {
+                self.advance();
+                let expression = self.expression();
+                values.push(expression);
+            }
+
+            if self.peek().token_type != TokenType::RBracket {
+                panic!("Unterminated list");
+            }
+            self.advance();
+        }
+
+        return Expression::List(Box::new(List { values }));
     }
 
     fn advance(&mut self) -> Token {

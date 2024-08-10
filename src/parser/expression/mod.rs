@@ -5,6 +5,7 @@ pub mod comparison;
 pub mod equality;
 pub mod factor;
 pub mod if_expression;
+pub mod list;
 pub mod or;
 pub mod primary;
 pub mod term;
@@ -17,6 +18,7 @@ pub use comparison::Comparison;
 pub use equality::Equality;
 pub use factor::Factor;
 pub use if_expression::IfExpression;
+pub use list::List;
 pub use or::Or;
 pub use primary::Primary;
 pub use term::Term;
@@ -39,6 +41,7 @@ pub enum Expression {
     Or(Box<Or>),
     And(Box<And>),
     Call(Box<Call>),
+    List(Box<List>),
 }
 
 impl Accept for Expression {
@@ -55,6 +58,7 @@ impl Accept for Expression {
             Expression::Or(or) => or.accept(visitor),
             Expression::And(and) => and.accept(visitor),
             Expression::Call(call) => call.accept(visitor),
+            Expression::List(list) => list.accept(visitor),
         }
     }
 }

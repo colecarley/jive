@@ -6,4 +6,5 @@ pub enum Type {
     Function,
     Unknown,
     Nil,
+    List,
 }

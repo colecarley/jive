@@ -225,3 +225,11 @@ funk get_callback() {
 }
 
 print get_callback()();
+
+
+make x = [1,2,3];
+
+print x;
+
+println(x);
+
