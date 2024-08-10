@@ -204,3 +204,12 @@ pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: Vec<Value>)
         panic!("Must pass a number to range function")
     }
 }
+
+pub fn len(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+    // arity is Some(1)
+    Value::Number(match &arguments[0] {
+        Value::List(list) => list.len() as f64,
+        Value::String(string) => string.len() as f64,
+        _ => panic!("Must pass either a list or a string to len function"),
+    })
+}

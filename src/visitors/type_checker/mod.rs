@@ -4,8 +4,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Primary, Term,
-            Unary,
+            Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, Primary,
+            Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -53,6 +53,9 @@ impl TypeChecker {
         environment
             .borrow_mut()
             .declare_global("range_skip".to_string(), Type::Function);
+        environment
+            .borrow_mut()
+            .declare_global("len".to_string(), Type::Function);
 
         TypeChecker { environment }
     }
@@ -407,5 +410,20 @@ impl super::Visitor for TypeChecker {
         self.environment = new_environment.borrow_mut().get_enclosing();
 
         Type::Nil
+    }
+
+    fn visit_index(&mut self, index: &Index) -> Self::Output {
+        let list_type = index.list.accept(self);
+
+        if list_type != Type::List && list_type != Type::String && list_type != Type::Unknown {
+            panic!("Must index into either list or string")
+        }
+
+        let expression_type = index.expression.accept(self);
+        if expression_type != Type::Number && expression_type != Type::Unknown {
+            panic!("Must index into list or string with a number")
+        }
+
+        Type::Unknown
     }
 }

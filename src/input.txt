@@ -257,3 +257,22 @@ for i in range_to(10) {
 for i in range_skip(0, 10, 2) {
     print i;
 }
+
+make words = ['hello', 'there', 'can', 'you', 'see', 'this'];
+
+
+for i in range_to(len(words)) {
+    print words[i];
+}
+
+funk first() {
+    return [1];
+}
+
+funk second() {
+    return [2];
+}
+
+funk third() {
+    return [3];
+}

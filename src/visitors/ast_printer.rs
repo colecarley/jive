@@ -1,7 +1,8 @@
 use crate::parser::{
     accept::Accept,
     expression::{
-        Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Primary, Term, Unary,
+        Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, Primary, Term,
+        Unary,
     },
     statement::{
         Block, ExpressionStatement, For, IfStatement, PrintStatement, Return, Statement,
@@ -223,6 +224,14 @@ impl super::Visitor for AstPrinter {
             for_statement.identifier.lexeme,
             for_statement.iter.accept(self),
             for_statement.body.accept(self)
+        )
+    }
+
+    fn visit_index(&mut self, index: &Index) -> Self::Output {
+        format!(
+            "{}[{}]",
+            index.list.accept(self),
+            index.expression.accept(self)
         )
     }
 }

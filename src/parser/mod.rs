@@ -33,7 +33,7 @@ pub mod expression;
 pub mod statement;
 
 use expression::{
-    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, List, Or,
+    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Index, List, Or,
     Primary, Term, Unary,
 };
 use statement::{
@@ -431,8 +431,25 @@ impl Parser {
             let right = self.unary();
             return Expression::Unary(Box::new(Unary::new(operator, right)));
         } else {
-            return self.call();
+            return self.index();
         }
+    }
+
+    fn index(&mut self) -> Expression {
+        let mut list = self.call();
+
+        while self.peek().token_type == TokenType::LBracket {
+            self.advance();
+            let expression = self.expression();
+            if self.peek().token_type != TokenType::RBracket {
+                panic!("Expected '] after list")
+            }
+            self.advance();
+
+            list = Expression::Index(Box::new(Index { list, expression }))
+        }
+
+        list
     }
 
     fn call(&mut self) -> Expression {

@@ -4,8 +4,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Or, Primary,
-            Term, Unary,
+            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, Or,
+            Primary, Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -57,6 +57,10 @@ impl Interpreter {
         environment.borrow_mut().declare_global(
             "range_skip".to_string(),
             Value::BuiltIn(BuiltIn::new(Some(3), callable::range_min_max_skip)),
+        );
+        environment.borrow_mut().declare_global(
+            "len".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(1), callable::len)),
         );
 
         Interpreter { environment }
@@ -426,6 +430,26 @@ impl super::Visitor for Interpreter {
                 (Value::Nil, false)
             }
             _ => panic!("Must use an Iter in the 'for' statement"),
+        }
+    }
+
+    fn visit_index(&mut self, index: &Index) -> Self::Output {
+        let (list, _) = index.list.accept(self);
+        let (expression, _) = index.expression.accept(self);
+
+        match list {
+            Value::List(indexable) => match expression {
+                Value::Number(number) => (indexable[(number as i32) as usize].clone(), false),
+                _ => panic!("Must use number to index into list or string"),
+            },
+            Value::String(indexable) => match expression {
+                Value::Number(number) => (
+                    Value::String(indexable.as_bytes()[(number as i32) as usize].to_string()),
+                    false,
+                ),
+                _ => panic!("Must use number to index into list or string"),
+            },
+            _ => panic!("Can only index into list or string"),
         }
     }
 }
