@@ -48,7 +48,10 @@ impl Interpreter {
 
     pub fn evaluate(&mut self, statements: &Vec<Statement>) -> Value {
         for statement in statements {
-            statement.accept(self);
+            let (_, ret) = statement.accept(self);
+            if ret {
+                panic!("Return keyword should not be used outside of a function body");
+            }
         }
 
         Value::Nil
