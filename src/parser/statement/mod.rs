@@ -4,6 +4,7 @@ use super::accept::Accept;
 
 pub mod block;
 pub mod expression;
+pub mod for_statement;
 pub mod function_declaration;
 pub mod if_statement;
 pub mod print;
@@ -14,6 +15,7 @@ pub mod with_statement;
 
 pub use block::Block;
 pub use expression::ExpressionStatement;
+pub use for_statement::For;
 pub use function_declaration::FunctionDeclaration;
 pub use if_statement::IfStatement;
 pub use print::PrintStatement;
@@ -33,6 +35,7 @@ pub enum Statement {
     FunctionDeclaration(Box<FunctionDeclaration>),
     Return(Box<Return>),
     With(Box<With>),
+    For(Box<For>),
 }
 
 impl Accept for Statement {
@@ -57,6 +60,7 @@ impl Accept for Statement {
             }
             Statement::Return(return_statement) => visitor.visit_return(return_statement),
             Statement::With(with_statement) => visitor.visit_with_statement(with_statement),
+            Statement::For(for_statement) => visitor.visit_for_statement(for_statement),
         }
     }
 }

@@ -26,6 +26,8 @@ pub enum TokenType {
     Return,
     With,
     As,
+    For,
+    In,
 
     // Single-character tokens
     Plus,

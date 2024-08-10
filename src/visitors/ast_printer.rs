@@ -4,7 +4,7 @@ use crate::parser::{
         Assignment, Call, Comparison, Equality, Factor, IfExpression, List, Primary, Term, Unary,
     },
     statement::{
-        Block, ExpressionStatement, IfStatement, PrintStatement, Return, Statement,
+        Block, ExpressionStatement, For, IfStatement, PrintStatement, Return, Statement,
         VariableDeclaration, WhileStatement, With,
     },
 };
@@ -214,6 +214,15 @@ impl super::Visitor for AstPrinter {
                 .map(|v| v.accept(self))
                 .collect::<Vec<String>>()
                 .join(", ")
+        )
+    }
+
+    fn visit_for_statement(&mut self, for_statement: &For) -> Self::Output {
+        format!(
+            "for {} in {} {}",
+            for_statement.identifier.lexeme,
+            for_statement.iter.accept(self),
+            for_statement.body.accept(self)
         )
     }
 }

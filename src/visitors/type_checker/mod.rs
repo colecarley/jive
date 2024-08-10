@@ -8,8 +8,8 @@ use crate::{
             Unary,
         },
         statement::{
-            Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
-            Statement, VariableDeclaration, WhileStatement, With,
+            Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
+            Return, Statement, VariableDeclaration, WhileStatement, With,
         },
     },
     token::TokenType,
@@ -371,5 +371,32 @@ impl super::Visitor for TypeChecker {
         }
 
         Type::List
+    }
+
+    fn visit_for_statement(&mut self, for_statement: &For) -> Self::Output {
+        if for_statement.identifier.token_type != TokenType::Identifier {
+            panic!("Must use an identifier in the 'with' statement");
+        }
+
+        let iter_type = for_statement.iter.accept(self);
+
+        if iter_type != Type::Unknown {
+            panic!("Must use an Iter in the 'for' statement");
+        }
+
+        let new_environment = Rc::new(RefCell::new(Environment::new()));
+        new_environment
+            .borrow_mut()
+            .enclose(self.environment.clone());
+        self.environment = new_environment.clone();
+
+        self.environment
+            .borrow_mut()
+            .declare(for_statement.identifier.lexeme.clone(), iter_type);
+        for_statement.body.accept(self);
+
+        self.environment = new_environment.borrow_mut().get_enclosing();
+
+        Type::Nil
     }
 }

@@ -234,5 +234,15 @@ print x;
 println(x);
 
 
-make x = iter(x);
-print x;
+
+for i in iter(x) {
+    print i;
+}
+
+
+make string = "hello there";
+
+for char in iter(string) {
+    print char;
+}
+

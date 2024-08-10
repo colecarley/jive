@@ -4,7 +4,7 @@ use crate::parser::{
         Unary,
     },
     statement::{
-        Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
+        Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement, Return,
         VariableDeclaration, WhileStatement, With,
     },
 };
@@ -67,4 +67,6 @@ pub trait Visitor {
     fn visit_with_statement(&mut self, with_statement: &With) -> Self::Output;
 
     fn visit_list(&mut self, list: &List) -> Self::Output;
+
+    fn visit_for_statement(&mut self, for_statement: &For) -> Self::Output;
 }

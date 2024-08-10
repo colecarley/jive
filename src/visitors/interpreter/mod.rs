@@ -8,8 +8,8 @@ use crate::{
             Term, Unary,
         },
         statement::{
-            Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
-            Statement, WhileStatement,
+            Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
+            Return, Statement, WhileStatement,
         },
     },
     token::TokenType,
@@ -387,5 +387,33 @@ impl super::Visitor for Interpreter {
             ),
             false,
         )
+    }
+
+    fn visit_for_statement(&mut self, for_statement: &For) -> Self::Output {
+        let identifer = for_statement.identifier.lexeme.clone();
+        let (iter, _) = for_statement.iter.accept(self);
+
+        match iter {
+            Value::Iter(iter) => {
+                let iter = iter.iter();
+                for value in iter {
+                    let new_environment = Rc::new(RefCell::new(Environment::new()));
+                    new_environment
+                        .borrow_mut()
+                        .enclose(self.environment.clone());
+
+                    new_environment
+                        .borrow_mut()
+                        .declare(identifer.clone(), value.clone());
+
+                    self.environment = new_environment.clone();
+                    for_statement.body.accept(self);
+
+                    self.environment = new_environment.borrow_mut().get_enclosing();
+                }
+                (Value::Nil, false)
+            }
+            _ => panic!("Must use an Iter in the 'for' statement"),
+        }
     }
 }

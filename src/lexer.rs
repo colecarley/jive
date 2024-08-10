@@ -8,7 +8,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    const KEYWORDS: [(&'static str, TokenType); 14] = [
+    const KEYWORDS: [(&'static str, TokenType); 16] = [
         ("true", TokenType::Boolean),
         ("false", TokenType::Boolean),
         ("nil", TokenType::Nil),
@@ -23,6 +23,8 @@ impl Lexer {
         ("return", TokenType::Return),
         ("with", TokenType::With),
         ("as", TokenType::As),
+        ("for", TokenType::For),
+        ("in", TokenType::In),
     ];
 
     pub fn new(input: String) -> Lexer {
