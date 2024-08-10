@@ -122,3 +122,85 @@ pub fn iter(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
         _ => panic!("Input must be of type either string or list"),
     }
 }
+
+pub fn range_max(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+    // arity is Some(1)
+    let max = &arguments[0];
+
+    match max {
+        Value::Number(max) => {
+            if max.is_sign_negative() {
+                panic!("Must pass a positive number to range function");
+            } else {
+                Value::Iter(
+                    (0..(*max as i64))
+                        .map(|v| Value::Number(v as f64))
+                        .collect::<Vec<Value>>(),
+                )
+            }
+        }
+        _ => panic!("Must pass a number to range function"),
+    }
+}
+
+pub fn range_min_max(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+    // arity is Some(2)
+    let min = &arguments[0];
+    let max = &arguments[1];
+
+    if let Value::Number(min) = min {
+        if min.is_sign_negative() {
+            panic!("Must pass a positive number to range function");
+        }
+
+        if let Value::Number(max) = max {
+            if min >= max {
+                panic!("First argument must be smaller than the second argument");
+            }
+
+            Value::Iter(
+                ((*min as i64)..(*max as i64))
+                    .map(|v| Value::Number(v as f64))
+                    .collect::<Vec<Value>>(),
+            )
+        } else {
+            panic!("Must pass a number to range function")
+        }
+    } else {
+        panic!("Must pass a number to range function")
+    }
+}
+
+pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+    // arity is Some(2)
+    let min = &arguments[0];
+    let max = &arguments[1];
+    let skip = &arguments[2];
+
+    if let Value::Number(min) = min {
+        if min.is_sign_negative() {
+            panic!("Must pass a positive number to range function");
+        }
+
+        if let Value::Number(max) = max {
+            if min >= max {
+                panic!("First argument must be smaller than the second argument");
+            }
+
+            if let Value::Number(skip) = skip {
+                Value::Iter(
+                    ((*min as i64)..(*max as i64))
+                        .step_by(((*skip as i64) as usize))
+                        .map(|v| Value::Number(v as f64))
+                        .collect::<Vec<Value>>(),
+                )
+            } else {
+                panic!("Must pass a number to range function")
+            }
+        } else {
+            panic!("Must pass a number to range function")
+        }
+    } else {
+        panic!("Must pass a number to range function")
+    }
+}

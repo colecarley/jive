@@ -46,6 +46,18 @@ impl Interpreter {
             "iter".to_string(),
             Value::BuiltIn(BuiltIn::new(Some(1), callable::iter)),
         );
+        environment.borrow_mut().declare_global(
+            "range_to".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(1), callable::range_max)),
+        );
+        environment.borrow_mut().declare_global(
+            "range".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(2), callable::range_min_max)),
+        );
+        environment.borrow_mut().declare_global(
+            "range_skip".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(3), callable::range_min_max_skip)),
+        );
 
         Interpreter { environment }
     }

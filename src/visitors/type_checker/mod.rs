@@ -44,6 +44,15 @@ impl TypeChecker {
         environment
             .borrow_mut()
             .declare_global("iter".to_string(), Type::Function);
+        environment
+            .borrow_mut()
+            .declare_global("range_to".to_string(), Type::Function);
+        environment
+            .borrow_mut()
+            .declare_global("range".to_string(), Type::Function);
+        environment
+            .borrow_mut()
+            .declare_global("range_skip".to_string(), Type::Function);
 
         TypeChecker { environment }
     }
