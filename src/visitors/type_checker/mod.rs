@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     parser::{
         accept::Accept,
@@ -19,15 +21,24 @@ pub mod types;
 use types::Type;
 
 pub struct TypeChecker {
-    environment: Environment<Type>,
+    environment: Rc<RefCell<Environment<Type>>>,
 }
 
 impl TypeChecker {
     pub fn new() -> Self {
-        let mut environment = Environment::<Type>::new();
-        environment.declare_global("clock".to_string(), Type::Function);
-        environment.declare_global("println".to_string(), Type::Function);
-        environment.declare_global("input".to_string(), Type::Function);
+        let environment = Rc::new(RefCell::new(Environment::<Type>::new()));
+
+        environment
+            .borrow_mut()
+            .declare_global("clock".to_string(), Type::Function);
+
+        environment
+            .borrow_mut()
+            .declare_global("println".to_string(), Type::Function);
+
+        environment
+            .borrow_mut()
+            .declare_global("input".to_string(), Type::Function);
 
         TypeChecker { environment }
     }
@@ -45,6 +56,7 @@ impl super::Visitor for TypeChecker {
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let value_type = assignment.value.accept(self);
         self.environment
+            .borrow_mut()
             .assign(assignment.identifier.lexeme.clone(), value_type.clone());
 
         value_type
@@ -95,6 +107,10 @@ impl super::Visitor for TypeChecker {
         let left_type = factor.left.accept(self);
         let right_type = factor.right.accept(self);
 
+        if left_type == Type::Unknown || right_type == Type::Unknown {
+            return Type::Unknown;
+        }
+
         if left_type != Type::Number || right_type != Type::Number {
             panic!("Operands must be numbers");
         }
@@ -129,7 +145,10 @@ impl super::Visitor for TypeChecker {
             TokenType::Boolean => Type::Boolean,
             TokenType::String => Type::String,
             TokenType::Nil => Type::Nil,
-            TokenType::Identifier => self.environment.get(primary.value.lexeme.clone()).clone(),
+            TokenType::Identifier => self
+                .environment
+                .borrow_mut()
+                .get(primary.value.lexeme.clone()),
             _ => panic!("Unexpected token type"),
         }
     }
@@ -156,27 +175,31 @@ impl super::Visitor for TypeChecker {
         if let Some(expression) = &variable_declaration.expression {
             let value_type = expression.accept(self);
             self.environment
+                .borrow_mut()
                 .declare(variable_declaration.identifier.lexeme.clone(), value_type);
 
             return Type::Nil;
         }
 
         self.environment
+            .borrow_mut()
             .declare(variable_declaration.identifier.lexeme.clone(), Type::Nil);
 
         Type::Nil
     }
 
     fn visit_block(&mut self, block: &Block) -> Self::Output {
-        let mut new_environment = Environment::new();
-        new_environment.enclose(&Box::new(self.environment.clone()));
+        let new_environment = Rc::new(RefCell::new(Environment::new()));
+        new_environment
+            .borrow_mut()
+            .enclose(self.environment.clone());
         self.environment = new_environment.clone();
 
         for statement in &block.statements {
             statement.accept(self);
         }
 
-        self.environment = *self.environment.get_enclosing();
+        self.environment = new_environment.borrow_mut().get_enclosing();
 
         Type::Nil
     }
@@ -274,6 +297,8 @@ impl super::Visitor for TypeChecker {
             argument.accept(self);
         }
 
+        // TODO: figure out the return type of the function
+
         Type::Unknown
     }
 
@@ -281,23 +306,26 @@ impl super::Visitor for TypeChecker {
         &mut self,
         function_declaration: &FunctionDeclaration,
     ) -> Self::Output {
-        self.environment.declare(
+        self.environment.borrow_mut().declare(
             function_declaration.identifier.lexeme.clone(),
             Type::Function,
         );
 
-        let mut new_environment = Environment::new();
-        new_environment.enclose(&Box::new(self.environment.clone()));
+        let new_environment = Rc::new(RefCell::new(Environment::new()));
+        new_environment
+            .borrow_mut()
+            .enclose(self.environment.clone());
         self.environment = new_environment.clone();
 
         for parameter in &function_declaration.parameters {
             self.environment
+                .borrow_mut()
                 .declare(parameter.lexeme.clone(), Type::Unknown);
         }
 
         function_declaration.body.accept(self);
 
-        self.environment = *self.environment.get_enclosing();
+        self.environment = new_environment.borrow_mut().get_enclosing();
 
         Type::Nil
     }

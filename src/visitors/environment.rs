@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Environment<T: Clone> {
     values: HashMap<String, T>,
-    enclosing: Option<Box<Environment<T>>>,
+    enclosing: Option<Rc<RefCell<Environment<T>>>>,
 }
 
 impl<T: Clone> Environment<T> {
@@ -16,7 +16,9 @@ impl<T: Clone> Environment<T> {
 
     pub fn declare_global(&mut self, identifier: String, value: T) {
         if let Some(enclosing) = &mut self.enclosing {
-            enclosing.declare_global(identifier.clone(), value.clone());
+            enclosing
+                .borrow_mut()
+                .declare_global(identifier.clone(), value.clone());
         }
         self.values.insert(identifier, value);
     }
@@ -26,7 +28,7 @@ impl<T: Clone> Environment<T> {
             return self.values.get(&identifier).unwrap().clone();
         } else {
             match &self.enclosing {
-                Some(enclosing) => enclosing.get(identifier),
+                Some(enclosing) => enclosing.borrow_mut().get(identifier),
                 None => panic!("Undefined variable {}", identifier),
             }
         }
@@ -41,17 +43,17 @@ impl<T: Clone> Environment<T> {
             self.values.insert(identifier, value);
         } else {
             match &mut self.enclosing {
-                Some(enclosing) => enclosing.assign(identifier, value),
+                Some(enclosing) => enclosing.borrow_mut().assign(identifier, value),
                 None => panic!("Undefined variable {}", identifier),
             }
         }
     }
 
-    pub fn enclose(&mut self, enclosing: &Box<Environment<T>>) {
+    pub fn enclose(&mut self, enclosing: Rc<RefCell<Environment<T>>>) {
         self.enclosing = Some(enclosing.clone());
     }
 
-    pub fn get_enclosing(&self) -> Box<Environment<T>> {
+    pub fn get_enclosing(&self) -> Rc<RefCell<Environment<T>>> {
         self.enclosing.clone().expect("No enclosing environment")
     }
 }

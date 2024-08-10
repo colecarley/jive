@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     parser::{
         accept::Accept,
@@ -21,22 +23,22 @@ use callable::{BuiltIn, Callable, Function};
 use value::Value;
 
 pub struct Interpreter {
-    environment: Environment<Value>,
+    environment: Rc<RefCell<Environment<Value>>>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
-        let mut environment = Environment::<Value>::new();
+        let environment = Rc::new(RefCell::new(Environment::<Value>::new()));
 
-        environment.declare_global(
+        environment.borrow_mut().declare_global(
             "clock".to_string(),
             Value::BuiltIn(BuiltIn::new(Some(0), callable::clock)),
         );
-        environment.declare_global(
+        environment.borrow_mut().declare_global(
             "println".to_string(),
             Value::BuiltIn(BuiltIn::new(None, callable::println)),
         );
-        environment.declare_global(
+        environment.borrow_mut().declare_global(
             "input".to_string(),
             Value::BuiltIn(BuiltIn::new(Some(0), callable::input)),
         );
@@ -59,6 +61,7 @@ impl super::Visitor for Interpreter {
     fn visit_assignment(&mut self, assignment: &Assignment) -> Self::Output {
         let (value, _) = assignment.value.accept(self);
         self.environment
+            .borrow_mut()
             .assign(assignment.identifier.lexeme.clone(), value.clone());
 
         (value, false)
@@ -138,7 +141,10 @@ impl super::Visitor for Interpreter {
                 TokenType::Number => Value::Number(primary.value.lexeme.parse().unwrap()),
                 TokenType::Boolean => Value::Boolean(primary.value.lexeme == "true"),
                 TokenType::String => Value::String(primary.value.lexeme.clone()),
-                TokenType::Identifier => self.environment.get(primary.value.lexeme.clone()),
+                TokenType::Identifier => self
+                    .environment
+                    .borrow_mut()
+                    .get(primary.value.lexeme.clone()),
                 TokenType::Nil => Value::Nil,
                 _ => panic!("Unexpected token type"),
             },
@@ -177,19 +183,23 @@ impl super::Visitor for Interpreter {
         if let Some(expression) = &variable_declaration.expression {
             let (value, _) = expression.accept(self);
             self.environment
+                .borrow_mut()
                 .declare(variable_declaration.identifier.lexeme.clone(), value);
 
             return (Value::Nil, false);
         }
         self.environment
+            .borrow_mut()
             .declare(variable_declaration.identifier.lexeme.clone(), Value::Nil);
 
         (Value::Nil, false)
     }
 
     fn visit_block(&mut self, block: &Block) -> Self::Output {
-        let mut new_environment = Environment::new();
-        new_environment.enclose(&Box::new(self.environment.clone()));
+        let new_environment = Rc::new(RefCell::new(Environment::new()));
+        new_environment
+            .borrow_mut()
+            .enclose(self.environment.clone());
         self.environment = new_environment.clone();
 
         for statement in &block.statements {
@@ -199,7 +209,7 @@ impl super::Visitor for Interpreter {
             }
         }
 
-        self.environment = *self.environment.get_enclosing();
+        self.environment = new_environment.borrow_mut().get_enclosing();
         (Value::Nil, false)
     }
 
@@ -303,11 +313,12 @@ impl super::Visitor for Interpreter {
         let function = Function {
             declaration: function_declaration.clone(),
             arity: function_declaration.parameters.len(),
+            closure: Rc::clone(&self.environment),
         };
 
         let value = Value::Function(function);
 
-        self.environment.declare(identifier, value);
+        self.environment.borrow_mut().declare(identifier, value);
 
         (Value::Nil, false)
     }

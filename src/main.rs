@@ -151,7 +151,7 @@ fn main() {
             return 5;
         }
 
-        print ret();
+        println('ret: ', ret());
 
 
         funk closure() {
@@ -169,6 +169,23 @@ fn main() {
         inc();
         inc();
         inc();
+
+
+        funk mult_by(x) {
+            funk mult(y) {
+                return x * y;
+            }
+            return mult;
+        }
+
+        make mult_by_2 = mult_by(2);
+        make mult_by_3 = mult_by(3);
+
+        print mult_by_2(3);
+        print mult_by_3(3);
+
+
+        
 
         "
     .to_string();

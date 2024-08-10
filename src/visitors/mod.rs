@@ -1,5 +1,3 @@
-use interpreter::{value::Value, Interpreter};
-
 use crate::parser::{
     expression::{
         And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Or, Primary, Term, Unary,
