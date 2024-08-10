@@ -1,12 +1,13 @@
 /*
 program → declaration* EOF ;
-statement → printStatement | expressionStatement | ifStatement | block | whileStatement | returnStatement ;
+statement → printStatement | expressionStatement | ifStatement | block | whileStatement | returnStatement | wihtStatement ;
+withStatement → "with" expression "as" expression statement;
 declaration → functionDeclaration | variableDeclaration |  statement ;
 variableDeclaration → "make" IDENTIFIER ( "=" expression )? ";" ;
 functionDeclaration → "funk" function ;
 function → IDENTIFIER "(" parameters? ")" block ;
 whileStatement → "while" expression statement ;
-ifStatement → "if"  expression  '{' statement '}' ( "else" '{' statement '}' )? ;
+ifStatement → "if"  expression  statement ( "else"  statement )? ;
 block → "{" declaration* "}" ;
 expression → assignment ;
 assignment → identifier "=" assignment | ifExpression ;
@@ -36,7 +37,7 @@ use expression::{
 };
 use statement::{
     Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
-    Statement, VariableDeclaration, WhileStatement,
+    Statement, VariableDeclaration, WhileStatement, With,
 };
 
 pub struct Parser {
@@ -77,8 +78,25 @@ impl Parser {
             TokenType::If => return self.if_statement(),
             TokenType::While => return self.while_statement(),
             TokenType::Return => return self.return_statement(),
+            TokenType::With => return self.with_statement(),
             _ => return self.expression_statement(),
         }
+    }
+
+    fn with_statement(&mut self) -> Statement {
+        self.advance();
+        let value = self.expression();
+
+        if self.peek().token_type != TokenType::As {
+            panic!("Expected 'as' keyword after 'with' keyword");
+        }
+        self.advance();
+
+        return Statement::With(Box::new(With {
+            value,
+            identifier: self.advance(),
+            body: self.statement(),
+        }));
     }
 
     fn return_statement(&mut self) -> Statement {

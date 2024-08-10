@@ -8,7 +8,7 @@ use crate::{
         },
         statement::{
             Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
-            Statement, VariableDeclaration, WhileStatement,
+            Statement, VariableDeclaration, WhileStatement, With,
         },
     },
     token::TokenType,
@@ -335,5 +335,28 @@ impl super::Visitor for TypeChecker {
             Some(value) => value.accept(self),
             None => Type::Nil,
         }
+    }
+
+    fn visit_with_statement(&mut self, with_statement: &With) -> Self::Output {
+        let new_environment = Rc::new(RefCell::new(Environment::new()));
+        new_environment
+            .borrow_mut()
+            .enclose(self.environment.clone());
+        self.environment = new_environment.clone();
+
+        if with_statement.identifier.token_type != TokenType::Identifier {
+            panic!("Must use an identifier in the 'with' statement");
+        }
+
+        let value_type = with_statement.value.accept(self);
+        self.environment
+            .borrow_mut()
+            .declare(with_statement.identifier.lexeme.clone(), value_type);
+
+        with_statement.body.accept(self);
+
+        self.environment = new_environment.borrow_mut().get_enclosing();
+
+        Type::Nil
     }
 }

@@ -335,4 +335,24 @@ impl super::Visitor for Interpreter {
             None => (Value::Nil, true),
         }
     }
+
+    fn visit_with_statement(
+        &mut self,
+        with_statement: &crate::parser::statement::With,
+    ) -> Self::Output {
+        let new_environment = Rc::new(RefCell::new(Environment::new()));
+        new_environment
+            .borrow_mut()
+            .enclose(self.environment.clone());
+
+        let identifier = with_statement.identifier.lexeme.clone();
+        let (value, _) = with_statement.value.accept(self);
+        new_environment.borrow_mut().declare(identifier, value);
+
+        self.environment = new_environment.clone();
+        with_statement.body.accept(self);
+
+        self.environment = new_environment.borrow_mut().get_enclosing();
+        (Value::Nil, false)
+    }
 }

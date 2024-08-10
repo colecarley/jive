@@ -4,7 +4,7 @@ use crate::parser::{
     },
     statement::{
         Block, ExpressionStatement, FunctionDeclaration, IfStatement, PrintStatement, Return,
-        VariableDeclaration, WhileStatement,
+        VariableDeclaration, WhileStatement, With,
     },
 };
 
@@ -62,4 +62,6 @@ pub trait Visitor {
     ) -> Self::Output;
 
     fn visit_return(&mut self, return_statement: &Return) -> Self::Output;
+
+    fn visit_with_statement(&mut self, with_statement: &With) -> Self::Output;
 }

@@ -10,6 +10,7 @@ pub mod print;
 pub mod return_statement;
 pub mod variable_declaration;
 pub mod while_statement;
+pub mod with_statement;
 
 pub use block::Block;
 pub use expression::ExpressionStatement;
@@ -19,6 +20,7 @@ pub use print::PrintStatement;
 pub use return_statement::Return;
 pub use variable_declaration::VariableDeclaration;
 pub use while_statement::WhileStatement;
+pub use with_statement::With;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Statement {
@@ -30,6 +32,7 @@ pub enum Statement {
     WhileStatement(Box<WhileStatement>),
     FunctionDeclaration(Box<FunctionDeclaration>),
     Return(Box<Return>),
+    With(Box<With>),
 }
 
 impl Accept for Statement {
@@ -53,6 +56,7 @@ impl Accept for Statement {
                 visitor.visit_function_declaration(function_declaration)
             }
             Statement::Return(return_statement) => visitor.visit_return(return_statement),
+            Statement::With(with_statement) => visitor.visit_with_statement(with_statement),
         }
     }
 }

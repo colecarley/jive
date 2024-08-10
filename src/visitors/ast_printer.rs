@@ -5,7 +5,7 @@ use crate::parser::{
     },
     statement::{
         Block, ExpressionStatement, IfStatement, PrintStatement, Return, Statement,
-        VariableDeclaration, WhileStatement,
+        VariableDeclaration, WhileStatement, With,
     },
 };
 
@@ -194,6 +194,15 @@ impl super::Visitor for AstPrinter {
                 Some(value) => value.accept(self),
                 None => String::from(""),
             }
+        )
+    }
+
+    fn visit_with_statement(&mut self, with_statement: &With) -> Self::Output {
+        format!(
+            "with {} as ({}) {}",
+            with_statement.value.accept(self),
+            with_statement.identifier.lexeme,
+            with_statement.body.accept(self)
         )
     }
 }

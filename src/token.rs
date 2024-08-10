@@ -24,6 +24,8 @@ pub enum TokenType {
     While,
     Funk,
     Return,
+    With,
+    As,
 
     // Single-character tokens
     Plus,

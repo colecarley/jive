@@ -202,3 +202,26 @@ x = "you should see this";
 
 show_x();
 
+with 1 + 2 + 4 as x {
+    print x;
+}
+
+
+funk get_val() {
+    return 4;
+}
+
+with get_val() as val {
+    println("the val is: ", val);
+}
+
+
+funk get_callback() {
+    funk callback() {
+        return 4;
+    }
+
+    return callback;
+}
+
+print get_callback()();
