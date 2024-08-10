@@ -190,7 +190,7 @@ pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: Vec<Value>)
             if let Value::Number(skip) = skip {
                 Value::Iter(
                     ((*min as i64)..(*max as i64))
-                        .step_by(((*skip as i64) as usize))
+                        .step_by((*skip as i64) as usize)
                         .map(|v| Value::Number(v as f64))
                         .collect::<Vec<Value>>(),
                 )
