@@ -233,3 +233,6 @@ print x;
 
 println(x);
 
+
+make x = iter(x);
+print x;

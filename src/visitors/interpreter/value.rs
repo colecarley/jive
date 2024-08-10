@@ -8,6 +8,7 @@ pub enum Value {
     BuiltIn(BuiltIn),
     Function(Function),
     List(Vec<Value>),
+    Iter(Vec<Value>),
     Nil,
 }
 
@@ -106,6 +107,13 @@ impl ToString for Value {
             Value::String(string) => string.clone(),
             Value::BuiltIn(callable) => format!("{:?}", callable),
             Value::Function(function) => format!("{:?}", function),
+            Value::Iter(iter) => format!(
+                "Iter [{}]",
+                iter.iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::List(list) => format!(
                 "[{}]",
                 list.iter()

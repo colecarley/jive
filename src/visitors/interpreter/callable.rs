@@ -78,6 +78,13 @@ pub fn println(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
             Value::String(string) => print!("{}", string),
             Value::BuiltIn(callable) => print!("{:?}", callable),
             Value::Function(function) => print!("{:?}", function),
+            Value::Iter(iter) => print!(
+                "Iter [{}]",
+                iter.iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::List(list) => print!(
                 "[{}]",
                 list.iter()
@@ -98,4 +105,20 @@ pub fn input(_interpreter: &mut Interpreter, _arguments: Vec<Value>) -> Value {
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     Value::String(input)
+}
+
+pub fn iter(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+    // arity is Some(1)
+    let value = &arguments[0];
+
+    match value {
+        Value::String(string) => Value::Iter(
+            string
+                .chars()
+                .map(|c| Value::String(c.to_string()))
+                .collect(),
+        ),
+        Value::List(list) => Value::Iter(list.clone()),
+        _ => panic!("Input must be of type either string or list"),
+    }
 }

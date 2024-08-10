@@ -41,6 +41,10 @@ impl TypeChecker {
             .borrow_mut()
             .declare_global("input".to_string(), Type::Function);
 
+        environment
+            .borrow_mut()
+            .declare_global("iter".to_string(), Type::Function);
+
         TypeChecker { environment }
     }
 

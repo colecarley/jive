@@ -42,6 +42,10 @@ impl Interpreter {
             "input".to_string(),
             Value::BuiltIn(BuiltIn::new(Some(0), callable::input)),
         );
+        environment.borrow_mut().declare_global(
+            "iter".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(1), callable::iter)),
+        );
 
         Interpreter { environment }
     }
@@ -173,6 +177,13 @@ impl super::Visitor for Interpreter {
             Value::String(string) => println!("{}", string),
             Value::BuiltIn(callable) => println!("{:?}", callable),
             Value::Function(function) => println!("{:?}", function),
+            Value::Iter(iter) => println!(
+                "Iter [{}]",
+                iter.iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::List(list) => println!(
                 "[{}]",
                 list.iter()
