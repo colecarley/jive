@@ -76,8 +76,8 @@ pub fn println(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
             Value::Number(number) => print!("{}", number),
             Value::Boolean(boolean) => print!("{}", boolean),
             Value::String(string) => print!("{}", string),
-            Value::BuiltIn(callable) => print!("{:?}", callable),
-            Value::Function(function) => print!("{:?}", function),
+            Value::BuiltIn(callable) => print!("<native funk>"),
+            Value::Function(function) => print!("<funk>"),
             Value::Iter(iter) => print!(
                 "Iter [{}]",
                 iter.iter()

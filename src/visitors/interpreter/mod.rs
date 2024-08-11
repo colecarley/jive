@@ -191,8 +191,8 @@ impl super::Visitor for Interpreter {
             Value::Number(number) => println!("{}", number),
             Value::Boolean(boolean) => println!("{}", boolean),
             Value::String(string) => println!("{}", string),
-            Value::BuiltIn(callable) => println!("{:?}", callable),
-            Value::Function(function) => println!("{:?}", function),
+            Value::BuiltIn(_) => println!("<native funk>"),
+            Value::Function(_) => println!("<funk>"),
             Value::Iter(iter) => println!(
                 "Iter [{}]",
                 iter.iter()

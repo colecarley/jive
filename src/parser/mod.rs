@@ -431,37 +431,38 @@ impl Parser {
             let right = self.unary();
             return Expression::Unary(Box::new(Unary::new(operator, right)));
         } else {
-            return self.index();
+            return self.call();
         }
-    }
-
-    fn index(&mut self) -> Expression {
-        let mut list = self.call();
-
-        while self.peek().token_type == TokenType::LBracket {
-            self.advance();
-            let expression = self.expression();
-            if self.peek().token_type != TokenType::RBracket {
-                panic!("Expected '] after list")
-            }
-            self.advance();
-
-            list = Expression::Index(Box::new(Index { list, expression }))
-        }
-
-        list
     }
 
     fn call(&mut self) -> Expression {
         let mut identifier = self.primary();
 
-        while self.peek().token_type == TokenType::LParen {
-            self.advance();
-            let arguments = self.arguments();
-            identifier = Expression::Call(Box::new(Call {
-                identifier,
-                arguments,
-            }));
+        while self.peek().token_type == TokenType::LParen
+            || self.peek().token_type == TokenType::LBracket
+        {
+            if self.peek().token_type == TokenType::LParen {
+                self.advance();
+                let arguments = self.arguments();
+                identifier = Expression::Call(Box::new(Call {
+                    identifier,
+                    arguments,
+                }));
+            }
+
+            if self.peek().token_type == TokenType::LBracket {
+                self.advance();
+                let expression = self.expression();
+                if self.peek().token_type != TokenType::RBracket {
+                    panic!("Expected '] after list")
+                }
+                self.advance();
+
+                identifier = Expression::Index(Box::new(Index {
+                    list: identifier,
+                    expression,
+                }))
+            }
         }
 
         identifier

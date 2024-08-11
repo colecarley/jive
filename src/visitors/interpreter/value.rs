@@ -105,8 +105,8 @@ impl ToString for Value {
             Value::Number(number) => number.to_string(),
             Value::Boolean(boolean) => boolean.to_string(),
             Value::String(string) => string.clone(),
-            Value::BuiltIn(callable) => format!("{:?}", callable),
-            Value::Function(function) => format!("{:?}", function),
+            Value::BuiltIn(_) => format!("<native funk>"),
+            Value::Function(_) => format!("<funk>"),
             Value::Iter(iter) => format!(
                 "Iter [{}]",
                 iter.iter()

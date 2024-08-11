@@ -276,3 +276,23 @@ funk second() {
 funk third() {
     return [3];
 }
+
+
+funk first() {
+    funk inner() {
+        return [4];
+    }
+    return inner;
+}
+
+funk second() {
+    return [2];
+}
+
+funk third() {
+    return [3];
+}
+
+make list = [first, second, third];
+
+print list[0]();
