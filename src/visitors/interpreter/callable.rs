@@ -29,10 +29,11 @@ impl Callable for Function {
                 .declare(parameter.lexeme.clone(), argument.clone());
         }
 
+        let previous_environment = interpreter.environment.clone();
         interpreter.environment = new_environment.clone();
         let (result, _) = self.declaration.body.accept(interpreter);
 
-        interpreter.environment = new_environment.borrow_mut().get_enclosing();
+        interpreter.environment = previous_environment;
 
         result
     }

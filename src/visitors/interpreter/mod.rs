@@ -350,7 +350,11 @@ impl super::Visitor for Interpreter {
         let function = Function {
             declaration: function_declaration.clone(),
             arity: function_declaration.parameters.len(),
-            closure: Rc::clone(&self.environment),
+            closure: if self.environment.borrow().has_enclosing() {
+                Rc::new(RefCell::new(self.environment.borrow().clone()))
+            } else {
+                Rc::clone(&self.environment)
+            },
         };
 
         let value = Value::Function(function);

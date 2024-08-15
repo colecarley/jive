@@ -294,5 +294,3 @@ funk third() {
 }
 
 make list = [first, second, third];
-
-print list[0]();

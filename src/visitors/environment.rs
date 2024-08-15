@@ -56,4 +56,8 @@ impl<T: Clone> Environment<T> {
     pub fn get_enclosing(&self) -> Rc<RefCell<Environment<T>>> {
         self.enclosing.clone().expect("No enclosing environment")
     }
+
+    pub fn has_enclosing(&self) -> bool {
+        self.enclosing.is_some()
+    }
 }
