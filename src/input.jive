@@ -14,6 +14,7 @@ make foo = 4;
 print foo;
 make bar;
 print bar;
+
 {
     print "Inside block";
     make x = 6;
@@ -21,6 +22,7 @@ print bar;
     print x + y;
     print "Inside block";
 }
+
 print "Outside block";
 print x + y;
 
@@ -260,7 +262,6 @@ for i in range_skip(0, 10, 2) {
 
 make words = ['hello', 'there', 'can', 'you', 'see', 'this'];
 
-
 for i in range_to(len(words)) {
     print words[i];
 }
@@ -294,3 +295,5 @@ funk third() {
 }
 
 make list = [first, second, third];
+
+
