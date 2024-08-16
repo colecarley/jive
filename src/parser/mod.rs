@@ -531,8 +531,9 @@ impl Parser {
             if self.peek().token_type != TokenType::RBracket {
                 panic!("Unterminated list");
             }
-            self.advance();
         }
+
+        self.advance();
 
         return Expression::List(Box::new(List { values }));
     }

@@ -295,5 +295,3 @@ funk third() {
 }
 
 make list = [first, second, third];
-
-

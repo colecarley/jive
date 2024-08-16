@@ -56,6 +56,15 @@ impl TypeChecker {
         environment
             .borrow_mut()
             .declare_global("len".to_string(), Type::Function);
+        environment
+            .borrow_mut()
+            .declare_global("push".to_string(), Type::Function);
+        environment
+            .borrow_mut()
+            .declare_global("to_number".to_string(), Type::Function);
+        environment
+            .borrow_mut()
+            .declare_global("type_of".to_string(), Type::Function);
 
         TypeChecker { environment }
     }
@@ -82,6 +91,10 @@ impl super::Visitor for TypeChecker {
     fn visit_equality(&mut self, equality: &Equality) -> Self::Output {
         let left_type = equality.left.accept(self);
         let right_type = equality.right.accept(self);
+
+        if left_type == Type::Unknown || right_type == Type::Unknown {
+            return Type::Boolean;
+        }
 
         if left_type != right_type {
             panic!("Operands must be of the same type");
@@ -113,8 +126,18 @@ impl super::Visitor for TypeChecker {
             return Type::Unknown;
         }
 
-        if left_type != Type::Number || right_type != Type::Number {
-            panic!("Operands must be numbers, line: {}", term.operator.line);
+        if left_type == Type::Number {
+            if right_type == Type::Number {
+                return Type::Number;
+            } else {
+                panic!("Operands must be the same type");
+            }
+        } else if left_type == Type::String {
+            if right_type == Type::String {
+                return Type::String;
+            } else {
+                panic!("Operands must be the same type");
+            }
         }
 
         Type::Number

@@ -62,6 +62,18 @@ impl Interpreter {
             "len".to_string(),
             Value::BuiltIn(BuiltIn::new(Some(1), callable::len)),
         );
+        environment.borrow_mut().declare_global(
+            "push".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(2), callable::push)),
+        );
+        environment.borrow_mut().declare_global(
+            "to_number".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(1), callable::to_number)),
+        );
+        environment.borrow_mut().declare_global(
+            "type_of".to_string(),
+            Value::BuiltIn(BuiltIn::new(Some(1), callable::type_of)),
+        );
 
         Interpreter { environment }
     }
@@ -326,7 +338,7 @@ impl super::Visitor for Interpreter {
         match callee {
             Value::BuiltIn(callable) => {
                 if callable.arity.is_none() {
-                    return (callable.call(self, arguments), false);
+                    return (callable.call(self, &mut arguments), false);
                 }
 
                 let arity = callable.arity.unwrap();
@@ -334,9 +346,9 @@ impl super::Visitor for Interpreter {
                     panic!("Expected {} arguments but got {}", arity, arguments.len());
                 }
 
-                return (callable.call(self, arguments), false);
+                return (callable.call(self, &mut arguments), false);
             }
-            Value::Function(function) => (function.call(self, arguments), false),
+            Value::Function(function) => (function.call(self, &mut arguments), false),
             _ => panic!("Can only call functions"),
         }
     }

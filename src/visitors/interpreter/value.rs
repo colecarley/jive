@@ -18,6 +18,7 @@ impl std::ops::Add for Value {
     fn add(self, other: Self) -> Self {
         match (self, other) {
             (Value::Number(left), Value::Number(right)) => Value::Number(left + right),
+            (Value::String(left), Value::String(right)) => Value::String(left + &right),
             _ => panic!("Operands must be numbers"),
         }
     }

@@ -8,7 +8,7 @@ use crate::{
 use super::{value::Value, Interpreter};
 
 pub trait Callable {
-    fn call(&self, interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value;
+    fn call(&self, interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value;
 }
 
 #[derive(Debug, Clone)]
@@ -19,7 +19,7 @@ pub struct Function {
 }
 
 impl Callable for Function {
-    fn call(&self, interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+    fn call(&self, interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
         let new_environment = Rc::new(RefCell::new(Environment::new()));
         new_environment.borrow_mut().enclose(self.closure.clone());
 
@@ -42,22 +42,25 @@ impl Callable for Function {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct BuiltIn {
     pub arity: Option<usize>,
-    pub function: fn(&mut Interpreter, Vec<Value>) -> Value,
+    pub function: fn(&mut Interpreter, &mut Vec<Value>) -> Value,
 }
 
 impl BuiltIn {
-    pub fn new(arity: Option<usize>, function: fn(&mut Interpreter, Vec<Value>) -> Value) -> Self {
+    pub fn new(
+        arity: Option<usize>,
+        function: fn(&mut Interpreter, &mut Vec<Value>) -> Value,
+    ) -> Self {
         BuiltIn { arity, function }
     }
 }
 
 impl Callable for BuiltIn {
-    fn call(&self, interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+    fn call(&self, interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
         (self.function)(interpreter, arguments)
     }
 }
 
-pub fn clock(_interpreter: &mut Interpreter, _arguments: Vec<Value>) -> Value {
+pub fn clock(_interpreter: &mut Interpreter, _arguments: &mut Vec<Value>) -> Value {
     // arity is Some(0)
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -70,7 +73,7 @@ pub fn clock(_interpreter: &mut Interpreter, _arguments: Vec<Value>) -> Value {
     Value::Number(in_ms as f64)
 }
 
-pub fn println(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+pub fn println(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is None
     for argument in arguments {
         match argument {
@@ -101,14 +104,14 @@ pub fn println(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
     Value::Nil
 }
 
-pub fn input(_interpreter: &mut Interpreter, _arguments: Vec<Value>) -> Value {
+pub fn input(_interpreter: &mut Interpreter, _arguments: &mut Vec<Value>) -> Value {
     // arity is Some(0)
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
-    Value::String(input)
+    Value::String(input.trim().to_string())
 }
 
-pub fn iter(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+pub fn iter(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(1)
     let value = &arguments[0];
 
@@ -124,7 +127,7 @@ pub fn iter(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
     }
 }
 
-pub fn range_max(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+pub fn range_max(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(1)
     let max = &arguments[0];
 
@@ -144,7 +147,7 @@ pub fn range_max(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value
     }
 }
 
-pub fn range_min_max(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+pub fn range_min_max(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(2)
     let min = &arguments[0];
     let max = &arguments[1];
@@ -172,7 +175,7 @@ pub fn range_min_max(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> V
     }
 }
 
-pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(2)
     let min = &arguments[0];
     let max = &arguments[1];
@@ -206,11 +209,48 @@ pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: Vec<Value>)
     }
 }
 
-pub fn len(_interpreter: &mut Interpreter, arguments: Vec<Value>) -> Value {
+pub fn len(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(1)
     Value::Number(match &arguments[0] {
         Value::List(list) => list.len() as f64,
         Value::String(string) => string.len() as f64,
         _ => panic!("Must pass either a list or a string to len function"),
+    })
+}
+
+pub fn push(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
+    // arity is Some(2)
+    let value = arguments[1].clone();
+
+    match &mut arguments[0] {
+        Value::List(list) => {
+            list.push(value);
+            Value::List(list.to_vec())
+        }
+        _ => panic!("Must pass either a list to push function"),
+    }
+}
+
+pub fn to_number(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
+    // arity is Some(1)
+
+    Value::Number(match &arguments[0] {
+        Value::String(string) => string.parse().expect("Could not parse string"),
+        _ => panic!("Must pass a string to to_number function"),
+    })
+}
+
+pub fn type_of(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
+    // arity is Some(1)
+
+    Value::String(match &arguments[0] {
+        Value::Number(_) => "number".to_string(),
+        Value::String(_) => "string".to_string(),
+        Value::Boolean(_) => "boolean".to_string(),
+        Value::BuiltIn(_) => "builtin function".to_string(),
+        Value::Function(_) => "function".to_string(),
+        Value::List(_) => "list".to_string(),
+        Value::Iter(_) => "iter".to_string(),
+        Value::Nil => "nil".to_string(),
     })
 }

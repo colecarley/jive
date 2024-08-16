@@ -1,0 +1,81 @@
+
+funk show_start() {
+    print "TODO LIST!";
+    print "(a small program written in jive by cole carley)";
+    print "press 1 to start";
+}
+
+funk show_menu() {
+    print "pick an option";
+    print "1. show todo's";
+    print "2. make a todo";
+    print "3. delete a todo";
+    print "4. exit";
+}
+
+funk print_todos(todos)  {
+    print "-------------------------";
+    for i in range_to(len(todos)) {
+        println("       ", i + 1, " ", todos[i]);
+    }
+    print "-------------------------";
+}
+
+funk make_todo() {
+    print "enter todo";
+    return input();
+}
+
+funk delete_index(todos, index) {
+    make new_todos = [];
+
+    for i in range_to(len(todos)) {
+        if i != to_number(index) - 1 {
+            new_todos = push(new_todos, todos[i]);
+        }
+    }
+
+    return new_todos;
+}
+
+
+funk main() {
+    show_start();
+
+    make start = input();
+    if start != "1" {
+        return;
+    }
+
+    make todos = [];
+
+    while(true) {
+        show_menu();
+        make option = input();
+        if option == "1" {
+            print_todos(todos);
+        } 
+        if option == "2" {
+            todos = push(todos, make_todo());
+        }
+        if option == "3" {
+            print "enter index to delete";
+            print_todos(todos);
+            make index_to_delete = input();
+            todos = delete_index(todos, index_to_delete);
+        }
+        if option == "4" {
+            print "thank you for using the program!";
+            return;
+        }
+
+        if option != "1" and 
+            option != "2" and 
+            option != "3" and 
+            option != "4" {
+            print "please enter a valid number";
+        }
+    }
+}
+
+main();
