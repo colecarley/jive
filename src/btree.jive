@@ -1,18 +1,5 @@
-funk get_right(node) {
-    return node[2];
-}
-
-funk get_left(node) {
-    return node[1];
-}
-
-funk get_value(node) {
-    return node[0];
-}
-
-
 funk create_node(val) {
-    return [val, [], []];
+    return {val: val, left: nil, right: nil,};
 }
 
 
@@ -21,17 +8,22 @@ funk add(root, new_val) {
         return create_node(new_val);
     }
 
-    if len(root) == 0 {
-        return create_node(new_val);
-    }
-
-    make current_val = get_value(root);
+    make current_val = root.val;
 
     if current_val > new_val {
-        return [current_val, add(get_left(root), new_val), get_right(root)];
+
+        return {
+            val: current_val,
+            left: add(root.left, new_val),
+            right: root.right,
+        };
     }
     
-    return [current_val, get_left(root), add(get_right(root), new_val)];
+    return {
+        val: current_val,
+        left: root.left,
+        right: add(root.right, new_val),
+    };
 }
 
 funk print_tree(root, level) {
@@ -39,20 +31,15 @@ funk print_tree(root, level) {
         return;
     }
 
-    if len(root) == 0 {
-        return;
-    }
-   
-
     make tab_string = "";
     for i in range_to(level) {
         tab_string = tab_string + " ";
     }
 
 
-    print_tree(get_left(root), level + 1);
-    println(tab_string, get_value(root));
-    print_tree(get_right(root), level + 1);
+    print_tree(root.left, level + 1);
+    println(tab_string, root.val);
+    print_tree(root.right, level + 1);
 }
 
 funk main() {

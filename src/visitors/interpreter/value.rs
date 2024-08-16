@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::callable::{BuiltIn, Function};
 
 #[derive(Debug, Clone)]
@@ -9,6 +11,7 @@ pub enum Value {
     Function(Function),
     List(Vec<Value>),
     Iter(Vec<Value>),
+    Record(HashMap<String, Value>),
     Nil,
 }
 
@@ -108,6 +111,14 @@ impl ToString for Value {
             Value::String(string) => string.clone(),
             Value::BuiltIn(_) => format!("<native funk>"),
             Value::Function(_) => format!("<funk>"),
+            Value::Record(record) => format!(
+                "{{{}}}",
+                record
+                    .keys()
+                    .map(|k| { format!("{}:{}", k, record.get(k).unwrap().to_string()) })
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::Iter(iter) => format!(
                 "Iter [{}]",
                 iter.iter()

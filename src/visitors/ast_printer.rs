@@ -1,8 +1,8 @@
 use crate::parser::{
     accept::Accept,
     expression::{
-        Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, Primary, Term,
-        Unary,
+        Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, MapIndex,
+        Primary, Record, Term, Unary,
     },
     statement::{
         Block, ExpressionStatement, For, IfStatement, PrintStatement, Return, Statement,
@@ -233,5 +233,21 @@ impl super::Visitor for AstPrinter {
             index.list.accept(self),
             index.expression.accept(self)
         )
+    }
+
+    fn visit_record(&mut self, record: &Record) -> Self::Output {
+        format!(
+            "{{ {} }}",
+            record
+                .key_values
+                .iter()
+                .map(|kv| format!("{}:{},", kv.0.lexeme, kv.1.accept(self)))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+
+    fn visit_map_index(&mut self, map_index: &MapIndex) -> Self::Output {
+        format!("{}.{}", map_index.map.accept(self), map_index.key.lexeme)
     }
 }

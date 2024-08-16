@@ -7,8 +7,10 @@ pub mod factor;
 pub mod if_expression;
 pub mod index;
 pub mod list;
+pub mod map_index;
 pub mod or;
 pub mod primary;
+pub mod record;
 pub mod term;
 pub mod unary;
 
@@ -21,8 +23,10 @@ pub use factor::Factor;
 pub use if_expression::IfExpression;
 pub use index::Index;
 pub use list::List;
+pub use map_index::MapIndex;
 pub use or::Or;
 pub use primary::Primary;
+pub use record::Record;
 pub use term::Term;
 pub use unary::Unary;
 
@@ -45,6 +49,8 @@ pub enum Expression {
     Call(Box<Call>),
     List(Box<List>),
     Index(Box<Index>),
+    Record(Box<Record>),
+    MapIndex(Box<MapIndex>),
 }
 
 impl Accept for Expression {
@@ -63,6 +69,8 @@ impl Accept for Expression {
             Expression::Call(call) => call.accept(visitor),
             Expression::List(list) => list.accept(visitor),
             Expression::Index(index) => index.accept(visitor),
+            Expression::Record(record) => record.accept(visitor),
+            Expression::MapIndex(map_index) => map_index.accept(visitor),
         }
     }
 }

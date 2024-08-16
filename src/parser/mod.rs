@@ -33,8 +33,8 @@ pub mod expression;
 pub mod statement;
 
 use expression::{
-    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Index, List, Or,
-    Primary, Term, Unary,
+    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Index, List,
+    MapIndex, Or, Primary, Record, Term, Unary,
 };
 use statement::{
     Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -440,6 +440,7 @@ impl Parser {
 
         while self.peek().token_type == TokenType::LParen
             || self.peek().token_type == TokenType::LBracket
+            || self.peek().token_type == TokenType::Dot
         {
             if self.peek().token_type == TokenType::LParen {
                 self.advance();
@@ -454,13 +455,24 @@ impl Parser {
                 self.advance();
                 let expression = self.expression();
                 if self.peek().token_type != TokenType::RBracket {
-                    panic!("Expected '] after list")
+                    panic!("Expected '] after list index")
                 }
                 self.advance();
 
                 identifier = Expression::Index(Box::new(Index {
                     list: identifier,
                     expression,
+                }))
+            }
+
+            if self.peek().token_type == TokenType::Dot {
+                self.advance();
+                let key = self.peek();
+                self.advance();
+
+                identifier = Expression::MapIndex(Box::new(MapIndex {
+                    map: identifier,
+                    key,
                 }))
             }
         }
@@ -501,6 +513,9 @@ impl Parser {
             TokenType::LBracket => {
                 return self.list();
             }
+            TokenType::LBrace => {
+                return self.record();
+            }
             TokenType::LParen => {
                 self.advance();
                 let expression = self.expression();
@@ -512,6 +527,39 @@ impl Parser {
             }
             _ => panic!("Unexpected token, {:?}", self.advance().token_type),
         }
+    }
+
+    fn record(&mut self) -> Expression {
+        self.advance();
+
+        let mut key_values = Vec::<(Token, Expression)>::new();
+        while self.peek().token_type != TokenType::RBrace {
+            let key = self.peek();
+            self.advance();
+
+            if self.peek().token_type != TokenType::Colon {
+                panic!(
+                    "expected semicolon after key in record, found {:?}",
+                    self.peek().token_type
+                );
+            }
+
+            self.advance();
+
+            let value = self.expression();
+
+            if self.peek().token_type != TokenType::Comma {
+                panic!("expected ',' after key value pair in record");
+            }
+
+            self.advance();
+
+            key_values.push((key, value));
+        }
+
+        self.advance();
+
+        return Expression::Record(Box::new(Record { key_values }));
     }
 
     fn list(&mut self) -> Expression {

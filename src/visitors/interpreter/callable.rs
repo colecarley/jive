@@ -82,6 +82,14 @@ pub fn println(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Va
             Value::String(string) => print!("{}", string),
             Value::BuiltIn(_) => print!("<native funk>"),
             Value::Function(_) => print!("<funk>"),
+            Value::Record(record) => print!(
+                "{{{}}}",
+                record
+                    .keys()
+                    .map(|k| { format!("{}:{},", k, record.get(k).unwrap().to_string()) })
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::Iter(iter) => print!(
                 "Iter [{}]",
                 iter.iter()
@@ -251,6 +259,7 @@ pub fn type_of(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Va
         Value::Function(_) => "function".to_string(),
         Value::List(_) => "list".to_string(),
         Value::Iter(_) => "iter".to_string(),
+        Value::Record(_) => "record".to_string(),
         Value::Nil => "nil".to_string(),
     })
 }

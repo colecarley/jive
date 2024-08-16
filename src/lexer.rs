@@ -144,6 +144,14 @@ impl Lexer {
                     let c = self.advance().to_string();
                     self.add_token(TokenType::Semicolon, c);
                 }
+                '.' => {
+                    let c = self.advance().to_string();
+                    self.add_token(TokenType::Dot, c);
+                }
+                ':' => {
+                    let c = self.advance().to_string();
+                    self.add_token(TokenType::Colon, c);
+                }
                 _ => {
                     if self.peek().is_ascii_alphabetic() {
                         self.handle_alpha();

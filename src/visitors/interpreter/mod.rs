@@ -1,11 +1,11 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     parser::{
         accept::Accept,
         expression::{
-            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, Or,
-            Primary, Term, Unary,
+            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List,
+            MapIndex, Or, Primary, Record, Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -205,6 +205,14 @@ impl super::Visitor for Interpreter {
             Value::String(string) => println!("{}", string),
             Value::BuiltIn(_) => println!("<native funk>"),
             Value::Function(_) => println!("<funk>"),
+            Value::Record(record) => println!(
+                "{{{}}}",
+                record
+                    .keys()
+                    .map(|k| { format!("{}:{}", k, record.get(k).unwrap().to_string()) })
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             Value::Iter(iter) => println!(
                 "Iter [{}]",
                 iter.iter()
@@ -466,6 +474,34 @@ impl super::Visitor for Interpreter {
                 _ => panic!("Must use number to index into list or string"),
             },
             _ => panic!("Can only index into list or string"),
+        }
+    }
+
+    fn visit_record(&mut self, record: &Record) -> Self::Output {
+        let mut map = HashMap::<String, Value>::new();
+
+        for (key, value) in &record.key_values {
+            let new_key = &key.lexeme;
+            let (new_value, _) = value.accept(self);
+            map.insert(new_key.to_string(), new_value);
+        }
+
+        (Value::Record(map), false)
+    }
+
+    fn visit_map_index(&mut self, map_index: &MapIndex) -> Self::Output {
+        let name = map_index.key.lexeme.clone();
+        let (map, _) = map_index.map.accept(self);
+
+        match map {
+            Value::Record(record) => (
+                record
+                    .get(&name)
+                    .expect("key does not exit in record")
+                    .clone(),
+                false,
+            ),
+            _ => panic!("Cannot dot index into non record type"),
         }
     }
 }

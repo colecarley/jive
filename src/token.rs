@@ -46,6 +46,8 @@ pub enum TokenType {
     Greater,
     Comma,
     Semicolon,
+    Dot,
+    Colon,
 
     // double-character tokens
     EqualEqual,

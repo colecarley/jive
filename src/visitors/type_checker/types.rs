@@ -7,4 +7,5 @@ pub enum Type {
     Unknown,
     Nil,
     List,
+    Record,
 }

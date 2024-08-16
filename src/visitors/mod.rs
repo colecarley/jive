@@ -1,7 +1,7 @@
 use crate::parser::{
     expression::{
-        And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, Or,
-        Primary, Term, Unary,
+        And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, MapIndex,
+        Or, Primary, Record, Term, Unary,
     },
     statement::{
         Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -71,4 +71,8 @@ pub trait Visitor {
     fn visit_for_statement(&mut self, for_statement: &For) -> Self::Output;
 
     fn visit_index(&mut self, index: &Index) -> Self::Output;
+
+    fn visit_record(&mut self, record: &Record) -> Self::Output;
+
+    fn visit_map_index(&mut self, map_index: &MapIndex) -> Self::Output;
 }

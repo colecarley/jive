@@ -1,0 +1,49 @@
+
+
+funk person(name) {
+    make record = {
+        name: "cole",
+        age: 22,
+        job: "coder",
+    };
+
+    funk say_name(me) {
+        print me.name;
+    }
+
+    funk say_age(me) {
+        print me.age;
+    }
+
+    funk say_job(me) {
+        print me.job;
+    }
+
+    funk make_person() {
+        funk me_say_name() {
+            say_name(record);
+        }
+
+        funk me_say_age() {
+            say_age(record);
+        }
+
+        funk me_say_job() {
+            say_job(record);
+        }
+
+        return { me: record, 
+            say_name: me_say_name, 
+            say_age: me_say_age, 
+            say_job: me_say_job,
+        };
+    }
+
+    return make_person;
+}
+
+make cole = person("cole")();
+
+cole.say_name();
+cole.say_job();
+cole.say_age();

@@ -4,8 +4,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, Primary,
-            Term, Unary,
+            Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, MapIndex,
+            Primary, Record, Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -445,6 +445,30 @@ impl super::Visitor for TypeChecker {
         let expression_type = index.expression.accept(self);
         if expression_type != Type::Number && expression_type != Type::Unknown {
             panic!("Must index into list or string with a number")
+        }
+
+        Type::Unknown
+    }
+
+    fn visit_record(&mut self, record: &Record) -> Self::Output {
+        for (key, value) in &record.key_values {
+            let key_type = &key.token_type;
+
+            if *key_type != TokenType::Identifier {
+                panic!("key of record must be an identifier");
+            }
+
+            value.accept(self);
+        }
+
+        Type::Record
+    }
+
+    fn visit_map_index(&mut self, map_index: &MapIndex) -> Self::Output {
+        let map_type = map_index.map.accept(self);
+
+        if map_type != Type::Record && map_type != Type::Unknown {
+            panic!("Must index into map");
         }
 
         Type::Unknown
