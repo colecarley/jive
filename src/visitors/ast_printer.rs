@@ -2,7 +2,7 @@ use crate::parser::{
     accept::Accept,
     expression::{
         Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, MapIndex,
-        Primary, Record, Term, Unary,
+        MapIndexAssignment, Primary, Record, Term, Unary,
     },
     statement::{
         Block, ExpressionStatement, For, IfStatement, PrintStatement, Return, Statement,
@@ -249,5 +249,17 @@ impl super::Visitor for AstPrinter {
 
     fn visit_map_index(&mut self, map_index: &MapIndex) -> Self::Output {
         format!("{}.{}", map_index.map.accept(self), map_index.key.lexeme)
+    }
+
+    fn visit_map_index_assignment(
+        &mut self,
+        map_index_assignment: &MapIndexAssignment,
+    ) -> Self::Output {
+        format!(
+            "{}.{} = {}",
+            map_index_assignment.map.accept(self),
+            map_index_assignment.key.lexeme,
+            map_index_assignment.value.accept(self)
+        )
     }
 }

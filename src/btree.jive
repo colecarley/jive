@@ -53,4 +53,22 @@ funk main() {
 }
 
 
+
+
+make foobar = {
+    hello: "hello",
+    world: "world",
+};
+
+funk print_foobar(foobar) {
+    println(foobar.hello, " ", foobar.world);
+}
+
+
+print_foobar(foobar);
+
+foobar.world = "cole";
+
+print_foobar(foobar);
+
 main();

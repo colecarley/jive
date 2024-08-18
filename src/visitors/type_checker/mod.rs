@@ -5,7 +5,7 @@ use crate::{
         accept::Accept,
         expression::{
             Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, MapIndex,
-            Primary, Record, Term, Unary,
+            MapIndexAssignment, Primary, Record, Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -188,7 +188,8 @@ impl super::Visitor for TypeChecker {
             TokenType::Identifier => self
                 .environment
                 .borrow_mut()
-                .get(primary.value.lexeme.clone()),
+                .get(primary.value.lexeme.clone())
+                .clone(),
             _ => panic!("Unexpected token type"),
         }
     }
@@ -466,11 +467,35 @@ impl super::Visitor for TypeChecker {
 
     fn visit_map_index(&mut self, map_index: &MapIndex) -> Self::Output {
         let map_type = map_index.map.accept(self);
+        let key = &map_index.key;
+
+        if key.token_type != TokenType::Identifier {
+            panic!("Must index into record with an identifer");
+        }
 
         if map_type != Type::Record && map_type != Type::Unknown {
             panic!("Must index into map");
         }
 
         Type::Unknown
+    }
+
+    fn visit_map_index_assignment(
+        &mut self,
+        map_index_assignment: &MapIndexAssignment,
+    ) -> Self::Output {
+        let key = &map_index_assignment.key;
+
+        if key.token_type != TokenType::Identifier {
+            panic!("Must index into record with an identifer");
+        }
+
+        let map_type = map_index_assignment.map.accept(self);
+
+        if map_type != Type::Record && map_type != Type::Unknown {
+            panic!("Must index into map");
+        }
+
+        map_index_assignment.value.accept(self)
     }
 }

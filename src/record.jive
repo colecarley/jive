@@ -18,9 +18,13 @@ funk person(name) {
     funk say_job(me) {
         print me.job;
     }
+    
+    funk set_age(me, age) {
+        record.age = age;
+    }
 
     funk make_person() {
-        funk me_say_name() {
+        funk me_say_name(function) {
             say_name(record);
         }
 
@@ -32,10 +36,15 @@ funk person(name) {
             say_job(record);
         }
 
+        funk me_set_age(age) {
+            set_age(record, age);
+        }
+
         return { me: record, 
             say_name: me_say_name, 
             say_age: me_say_age, 
             say_job: me_say_job,
+            set_age: me_set_age,
         };
     }
 
@@ -47,3 +56,24 @@ make cole = person("cole")();
 cole.say_name();
 cole.say_job();
 cole.say_age();
+cole.set_age(23);
+cole.say_age();
+
+
+make record = {
+    hello: "hello",
+    world: "world",
+};
+
+print record;
+
+funk update_record() {
+    record.world = "cole";
+}
+
+update_record();
+
+print record;
+
+
+

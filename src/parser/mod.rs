@@ -11,7 +11,7 @@ whileStatement → "while" expression statement ;
 ifStatement → "if"  expression  statement ( "else"  statement )? ;
 block → "{" declaration* "}" ;
 expression → assignment ;
-assignment → identifier "=" assignment | ifExpression ;
+assignment → (call ("." | "[" NUMBER "]"))? identifier "=" assignment | ifExpression ;
 ifExpression → expression "if" expression "else" expression | equality ;
 or → and ( "||" and )* | and;
 and → equality ( "&&" equality )* | equality;
@@ -34,7 +34,7 @@ pub mod statement;
 
 use expression::{
     And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Index, List,
-    MapIndex, Or, Primary, Record, Term, Unary,
+    MapIndex, MapIndexAssignment, Or, Primary, Record, Term, Unary,
 };
 use statement::{
     Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -301,6 +301,13 @@ impl Parser {
                         identifier: primary.value,
                         value: second,
                     }));
+                }
+                Expression::MapIndex(map_index) => {
+                    return Expression::MapIndexAssignment(Box::new(MapIndexAssignment {
+                        map: map_index.map,
+                        key: map_index.key,
+                        value: second,
+                    }))
                 }
                 _ => {
                     panic!("Invalid assignment target");

@@ -70,7 +70,7 @@ pub fn clock(_interpreter: &mut Interpreter, _arguments: &mut Vec<Value>) -> Val
         .expect("Time went backwards");
     let in_ms = since_the_epoch.as_secs() * 1_000 + since_the_epoch.subsec_millis() as u64;
 
-    Value::Number(in_ms as f64)
+    Value::Number(Box::new(in_ms as f64))
 }
 
 pub fn println(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
@@ -85,21 +85,24 @@ pub fn println(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Va
             Value::Record(record) => print!(
                 "{{{}}}",
                 record
+                    .borrow()
                     .keys()
-                    .map(|k| { format!("{}:{},", k, record.get(k).unwrap().to_string()) })
+                    .map(|k| { format!("{}:{},", k, record.borrow().get(k).unwrap().to_string()) })
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
             Value::Iter(iter) => print!(
                 "Iter [{}]",
-                iter.iter()
+                iter.borrow()
+                    .iter()
                     .map(|v| v.to_string())
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
             Value::List(list) => print!(
                 "[{}]",
-                list.iter()
+                list.borrow()
+                    .iter()
                     .map(|v| v.to_string())
                     .collect::<Vec<String>>()
                     .join(", ")
@@ -116,7 +119,7 @@ pub fn input(_interpreter: &mut Interpreter, _arguments: &mut Vec<Value>) -> Val
     // arity is Some(0)
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
-    Value::String(input.trim().to_string())
+    Value::String(Box::new(input.trim().to_string()))
 }
 
 pub fn iter(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
@@ -124,12 +127,12 @@ pub fn iter(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value
     let value = &arguments[0];
 
     match value {
-        Value::String(string) => Value::Iter(
+        Value::String(string) => Value::Iter(Rc::new(RefCell::new(
             string
                 .chars()
-                .map(|c| Value::String(c.to_string()))
+                .map(|c| Value::String(Box::new(c.to_string())))
                 .collect(),
-        ),
+        ))),
         Value::List(list) => Value::Iter(list.clone()),
         _ => panic!("Input must be of type either string or list"),
     }
@@ -144,11 +147,11 @@ pub fn range_max(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> 
             if max.is_sign_negative() {
                 panic!("Must pass a positive number to range function");
             } else {
-                Value::Iter(
-                    (0..(*max as i64))
-                        .map(|v| Value::Number(v as f64))
+                Value::Iter(Rc::new(RefCell::new(
+                    (0..(**max as i64))
+                        .map(|v| Value::Number(Box::new(v as f64)))
                         .collect::<Vec<Value>>(),
-                )
+                )))
             }
         }
         _ => panic!("Must pass a number to range function"),
@@ -170,11 +173,11 @@ pub fn range_min_max(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>)
                 panic!("First argument must be smaller than the second argument");
             }
 
-            Value::Iter(
-                ((*min as i64)..(*max as i64))
-                    .map(|v| Value::Number(v as f64))
+            Value::Iter(Rc::new(RefCell::new(
+                ((**min as i64)..(**max as i64))
+                    .map(|v| Value::Number(Box::new(v as f64)))
                     .collect::<Vec<Value>>(),
-            )
+            )))
         } else {
             panic!("Must pass a number to range function")
         }
@@ -200,12 +203,12 @@ pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: &mut Vec<Va
             }
 
             if let Value::Number(skip) = skip {
-                Value::Iter(
-                    ((*min as i64)..(*max as i64))
-                        .step_by((*skip as i64) as usize)
-                        .map(|v| Value::Number(v as f64))
+                Value::Iter(Rc::new(RefCell::new(
+                    ((**min as i64)..(**max as i64))
+                        .step_by((**skip as i64) as usize)
+                        .map(|v| Value::Number(Box::new(v as f64)))
                         .collect::<Vec<Value>>(),
-                )
+                )))
             } else {
                 panic!("Must pass a number to range function")
             }
@@ -219,11 +222,11 @@ pub fn range_min_max_skip(_interpreter: &mut Interpreter, arguments: &mut Vec<Va
 
 pub fn len(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(1)
-    Value::Number(match &arguments[0] {
-        Value::List(list) => list.len() as f64,
+    Value::Number(Box::new(match &arguments[0] {
+        Value::List(list) => list.borrow().len() as f64,
         Value::String(string) => string.len() as f64,
         _ => panic!("Must pass either a list or a string to len function"),
-    })
+    }))
 }
 
 pub fn push(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
@@ -232,8 +235,8 @@ pub fn push(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value
 
     match &mut arguments[0] {
         Value::List(list) => {
-            list.push(value);
-            Value::List(list.to_vec())
+            list.borrow_mut().push(value);
+            Value::List(list.clone())
         }
         _ => panic!("Must pass either a list to push function"),
     }
@@ -242,16 +245,16 @@ pub fn push(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value
 pub fn to_number(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(1)
 
-    Value::Number(match &arguments[0] {
+    Value::Number(Box::new(match &arguments[0] {
         Value::String(string) => string.parse().expect("Could not parse string"),
         _ => panic!("Must pass a string to to_number function"),
-    })
+    }))
 }
 
 pub fn type_of(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Value {
     // arity is Some(1)
 
-    Value::String(match &arguments[0] {
+    Value::String(Box::new(match &arguments[0] {
         Value::Number(_) => "number".to_string(),
         Value::String(_) => "string".to_string(),
         Value::Boolean(_) => "boolean".to_string(),
@@ -261,5 +264,5 @@ pub fn type_of(_interpreter: &mut Interpreter, arguments: &mut Vec<Value>) -> Va
         Value::Iter(_) => "iter".to_string(),
         Value::Record(_) => "record".to_string(),
         Value::Nil => "nil".to_string(),
-    })
+    }))
 }

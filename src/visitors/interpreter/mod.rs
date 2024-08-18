@@ -5,7 +5,7 @@ use crate::{
         accept::Accept,
         expression::{
             And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List,
-            MapIndex, Or, Primary, Record, Term, Unary,
+            MapIndex, MapIndexAssignment, Or, Primary, Record, Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -32,47 +32,50 @@ impl Interpreter {
 
         environment.borrow_mut().declare_global(
             "clock".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(0), callable::clock)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(0), callable::clock))),
         );
         environment.borrow_mut().declare_global(
             "println".to_string(),
-            Value::BuiltIn(BuiltIn::new(None, callable::println)),
+            Value::BuiltIn(Box::new(BuiltIn::new(None, callable::println))),
         );
         environment.borrow_mut().declare_global(
             "input".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(0), callable::input)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(0), callable::input))),
         );
         environment.borrow_mut().declare_global(
             "iter".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(1), callable::iter)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(1), callable::iter))),
         );
         environment.borrow_mut().declare_global(
             "range_to".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(1), callable::range_max)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(1), callable::range_max))),
         );
         environment.borrow_mut().declare_global(
             "range".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(2), callable::range_min_max)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(2), callable::range_min_max))),
         );
         environment.borrow_mut().declare_global(
             "range_skip".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(3), callable::range_min_max_skip)),
+            Value::BuiltIn(Box::new(BuiltIn::new(
+                Some(3),
+                callable::range_min_max_skip,
+            ))),
         );
         environment.borrow_mut().declare_global(
             "len".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(1), callable::len)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(1), callable::len))),
         );
         environment.borrow_mut().declare_global(
             "push".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(2), callable::push)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(2), callable::push))),
         );
         environment.borrow_mut().declare_global(
             "to_number".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(1), callable::to_number)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(1), callable::to_number))),
         );
         environment.borrow_mut().declare_global(
             "type_of".to_string(),
-            Value::BuiltIn(BuiltIn::new(Some(1), callable::type_of)),
+            Value::BuiltIn(Box::new(BuiltIn::new(Some(1), callable::type_of))),
         );
 
         Interpreter { environment }
@@ -108,8 +111,8 @@ impl super::Visitor for Interpreter {
 
         (
             match equality.operator.token_type {
-                TokenType::EqualEqual => Value::Boolean(left == right),
-                TokenType::BangEqual => Value::Boolean(left != right),
+                TokenType::EqualEqual => Value::Boolean(Box::new(left == right)),
+                TokenType::BangEqual => Value::Boolean(Box::new(left != right)),
                 _ => panic!("Unexpected token type"),
             },
             false,
@@ -122,10 +125,10 @@ impl super::Visitor for Interpreter {
 
         (
             match comparison.operator.token_type {
-                TokenType::Greater => Value::Boolean(left > right),
-                TokenType::GreaterEqual => Value::Boolean(left >= right),
-                TokenType::Less => Value::Boolean(left < right),
-                TokenType::LessEqual => Value::Boolean(left <= right),
+                TokenType::Greater => Value::Boolean(Box::new(left > right)),
+                TokenType::GreaterEqual => Value::Boolean(Box::new(left >= right)),
+                TokenType::Less => Value::Boolean(Box::new(left < right)),
+                TokenType::LessEqual => Value::Boolean(Box::new(left <= right)),
                 _ => panic!("Unexpected token type"),
             },
             false,
@@ -163,7 +166,9 @@ impl super::Visitor for Interpreter {
         (
             match unary.operator.token_type {
                 TokenType::Minus => -value,
-                TokenType::Bang => Value::Boolean(value == Value::Boolean(false)),
+                TokenType::Bang => {
+                    Value::Boolean(Box::new(value == Value::Boolean(Box::new(false))))
+                }
                 _ => panic!("Unexpected token type"),
             },
             false,
@@ -173,9 +178,9 @@ impl super::Visitor for Interpreter {
     fn visit_primary(&mut self, primary: &Primary) -> Self::Output {
         (
             match primary.value.token_type {
-                TokenType::Number => Value::Number(primary.value.lexeme.parse().unwrap()),
-                TokenType::Boolean => Value::Boolean(primary.value.lexeme == "true"),
-                TokenType::String => Value::String(primary.value.lexeme.clone()),
+                TokenType::Number => Value::Number(Box::new(primary.value.lexeme.parse().unwrap())),
+                TokenType::Boolean => Value::Boolean(Box::new(primary.value.lexeme == "true")),
+                TokenType::String => Value::String(Box::new(primary.value.lexeme.clone())),
                 TokenType::Identifier => self
                     .environment
                     .borrow_mut()
@@ -208,21 +213,24 @@ impl super::Visitor for Interpreter {
             Value::Record(record) => println!(
                 "{{{}}}",
                 record
+                    .borrow()
                     .keys()
-                    .map(|k| { format!("{}:{}", k, record.get(k).unwrap().to_string()) })
+                    .map(|k| { format!("{}:{}", k, record.borrow().get(k).unwrap().to_string()) })
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
             Value::Iter(iter) => println!(
                 "Iter [{}]",
-                iter.iter()
+                iter.borrow()
+                    .iter()
                     .map(|v| v.to_string())
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
             Value::List(list) => println!(
                 "[{}]",
-                list.iter()
+                list.borrow()
+                    .iter()
                     .map(|v| v.to_string())
                     .collect::<Vec<String>>()
                     .join(", ")
@@ -272,7 +280,7 @@ impl super::Visitor for Interpreter {
 
     fn visit_if_statement(&mut self, if_statement: &IfStatement) -> Self::Output {
         let (condition, _) = if_statement.condition.accept(self);
-        if condition == Value::Boolean(true) {
+        if condition == Value::Boolean(Box::new(true)) {
             let (result, ret) = if_statement.then_branch.accept(self);
             if ret {
                 return (result, ret);
@@ -290,7 +298,7 @@ impl super::Visitor for Interpreter {
     fn visit_if_expression(&mut self, if_expression: &IfExpression) -> Self::Output {
         let (condition, _) = if_expression.condition.accept(self);
 
-        if condition == Value::Boolean(true) {
+        if condition == Value::Boolean(Box::new(true)) {
             return if_expression.then_branch.accept(self);
         }
 
@@ -300,8 +308,8 @@ impl super::Visitor for Interpreter {
     fn visit_and(&mut self, and: &And) -> Self::Output {
         let (left, _) = and.left.accept(self);
 
-        if left == Value::Boolean(false) {
-            return (Value::Boolean(false), false);
+        if left == Value::Boolean(Box::new(false)) {
+            return (Value::Boolean(Box::new(false)), false);
         }
 
         and.right.accept(self)
@@ -310,8 +318,8 @@ impl super::Visitor for Interpreter {
     fn visit_or(&mut self, or: &Or) -> Self::Output {
         let (left, _) = or.left.accept(self);
 
-        if left == Value::Boolean(true) {
-            return (Value::Boolean(true), false);
+        if left == Value::Boolean(Box::new(true)) {
+            return (Value::Boolean(Box::new(true)), false);
         }
 
         or.right.accept(self)
@@ -320,7 +328,7 @@ impl super::Visitor for Interpreter {
     fn visit_while_statement(&mut self, while_statement: &WhileStatement) -> Self::Output {
         loop {
             let (condition, _) = while_statement.condition.accept(self);
-            if condition == Value::Boolean(false) {
+            if condition == Value::Boolean(Box::new(false)) {
                 break;
             }
 
@@ -370,14 +378,14 @@ impl super::Visitor for Interpreter {
         let function = Function {
             declaration: function_declaration.clone(),
             arity: function_declaration.parameters.len(),
-            closure: if self.environment.borrow().has_enclosing() {
-                Rc::new(RefCell::new(self.environment.borrow().clone()))
+            closure: if self.environment.borrow_mut().has_enclosing() {
+                Rc::new(RefCell::new(self.environment.borrow_mut().clone()))
             } else {
                 Rc::clone(&self.environment)
             },
         };
 
-        let value = Value::Function(function);
+        let value = Value::Function(Box::new(function));
 
         self.environment.borrow_mut().declare(identifier, value);
 
@@ -416,7 +424,7 @@ impl super::Visitor for Interpreter {
 
     fn visit_list(&mut self, list: &List) -> Self::Output {
         (
-            Value::List(
+            Value::List(Rc::new(RefCell::new(
                 list.values
                     .iter()
                     .map(|v| {
@@ -424,7 +432,7 @@ impl super::Visitor for Interpreter {
                         result
                     })
                     .collect::<Vec<Value>>(),
-            ),
+            ))),
             false,
         )
     }
@@ -435,8 +443,8 @@ impl super::Visitor for Interpreter {
 
         match iter {
             Value::Iter(iter) => {
-                let iter = iter.iter();
-                for value in iter {
+                let iter = iter.borrow();
+                for value in iter.iter() {
                     let new_environment = Rc::new(RefCell::new(Environment::new()));
                     new_environment
                         .borrow_mut()
@@ -463,12 +471,16 @@ impl super::Visitor for Interpreter {
 
         match list {
             Value::List(indexable) => match expression {
-                Value::Number(number) => (indexable[(number as i32) as usize].clone(), false),
+                Value::Number(number) => {
+                    (indexable.borrow()[(*number as i32) as usize].clone(), false)
+                }
                 _ => panic!("Must use number to index into list or string"),
             },
             Value::String(indexable) => match expression {
                 Value::Number(number) => (
-                    Value::String(indexable.as_bytes()[(number as i32) as usize].to_string()),
+                    Value::String(Box::new(
+                        indexable.as_bytes()[(*number as i32) as usize].to_string(),
+                    )),
                     false,
                 ),
                 _ => panic!("Must use number to index into list or string"),
@@ -486,7 +498,7 @@ impl super::Visitor for Interpreter {
             map.insert(new_key.to_string(), new_value);
         }
 
-        (Value::Record(map), false)
+        (Value::Record(Rc::new(RefCell::new(map))), false)
     }
 
     fn visit_map_index(&mut self, map_index: &MapIndex) -> Self::Output {
@@ -496,6 +508,7 @@ impl super::Visitor for Interpreter {
         match map {
             Value::Record(record) => (
                 record
+                    .borrow_mut()
                     .get(&name)
                     .expect("key does not exit in record")
                     .clone(),
@@ -503,5 +516,24 @@ impl super::Visitor for Interpreter {
             ),
             _ => panic!("Cannot dot index into non record type"),
         }
+    }
+
+    fn visit_map_index_assignment(
+        &mut self,
+        map_index_assignment: &MapIndexAssignment,
+    ) -> Self::Output {
+        let (map, _) = map_index_assignment.map.accept(self);
+        let (value, _) = map_index_assignment.value.accept(self);
+
+        if let Value::Record(record) = map {
+            record
+                .borrow_mut()
+                .insert(map_index_assignment.key.lexeme.clone(), value.clone())
+                .unwrap();
+
+            return (value, false);
+        }
+
+        panic!("Cannot dot index into no record type");
     }
 }
