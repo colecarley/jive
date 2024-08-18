@@ -75,5 +75,8 @@ update_record();
 
 print record;
 
+make list = [1,2,3,4];
+list[0] = 69;
 
+print list;
 

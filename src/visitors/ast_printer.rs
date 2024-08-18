@@ -1,8 +1,8 @@
 use crate::parser::{
     accept::Accept,
     expression::{
-        Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, MapIndex,
-        MapIndexAssignment, Primary, Record, Term, Unary,
+        Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, IndexAssignment, List,
+        MapIndex, MapIndexAssignment, Primary, Record, Term, Unary,
     },
     statement::{
         Block, ExpressionStatement, For, IfStatement, PrintStatement, Return, Statement,
@@ -260,6 +260,15 @@ impl super::Visitor for AstPrinter {
             map_index_assignment.map.accept(self),
             map_index_assignment.key.lexeme,
             map_index_assignment.value.accept(self)
+        )
+    }
+
+    fn visit_index_assignment(&mut self, index_assignment: &IndexAssignment) -> Self::Output {
+        format!(
+            "{}[{}] = {}",
+            index_assignment.list.accept(self),
+            index_assignment.expression.accept(self),
+            index_assignment.value.accept(self)
         )
     }
 }

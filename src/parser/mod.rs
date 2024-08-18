@@ -33,8 +33,8 @@ pub mod expression;
 pub mod statement;
 
 use expression::{
-    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Index, List,
-    MapIndex, MapIndexAssignment, Or, Primary, Record, Term, Unary,
+    And, Assignment, Call, Comparison, Equality, Expression, Factor, IfExpression, Index,
+    IndexAssignment, List, MapIndex, MapIndexAssignment, Or, Primary, Record, Term, Unary,
 };
 use statement::{
     Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement, Return,
@@ -306,6 +306,13 @@ impl Parser {
                     return Expression::MapIndexAssignment(Box::new(MapIndexAssignment {
                         map: map_index.map,
                         key: map_index.key,
+                        value: second,
+                    }))
+                }
+                Expression::Index(index) => {
+                    return Expression::IndexAssignment(Box::new(IndexAssignment {
+                        list: index.list,
+                        expression: index.expression,
                         value: second,
                     }))
                 }

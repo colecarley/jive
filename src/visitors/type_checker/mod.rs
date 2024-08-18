@@ -4,8 +4,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List, MapIndex,
-            MapIndexAssignment, Primary, Record, Term, Unary,
+            Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, IndexAssignment,
+            List, MapIndex, MapIndexAssignment, Primary, Record, Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -497,5 +497,20 @@ impl super::Visitor for TypeChecker {
         }
 
         map_index_assignment.value.accept(self)
+    }
+
+    fn visit_index_assignment(&mut self, index_assignment: &IndexAssignment) -> Self::Output {
+        let list_type = index_assignment.list.accept(self);
+        let expression_type = index_assignment.expression.accept(self);
+
+        if list_type != Type::Unknown && list_type != Type::List {
+            panic!("Must index into list or string");
+        }
+
+        if expression_type != Type::Number && expression_type != Type::Unknown {
+            panic!("Must use number to index into list or string");
+        }
+
+        return index_assignment.value.accept(self);
     }
 }

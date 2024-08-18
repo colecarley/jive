@@ -4,8 +4,8 @@ use crate::{
     parser::{
         accept::Accept,
         expression::{
-            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index, List,
-            MapIndex, MapIndexAssignment, Or, Primary, Record, Term, Unary,
+            And, Assignment, Call, Comparison, Equality, Factor, IfExpression, Index,
+            IndexAssignment, List, MapIndex, MapIndexAssignment, Or, Primary, Record, Term, Unary,
         },
         statement::{
             Block, ExpressionStatement, For, FunctionDeclaration, IfStatement, PrintStatement,
@@ -535,5 +535,22 @@ impl super::Visitor for Interpreter {
         }
 
         panic!("Cannot dot index into no record type");
+    }
+
+    fn visit_index_assignment(&mut self, index_assignment: &IndexAssignment) -> Self::Output {
+        let (list, _) = index_assignment.list.accept(self);
+        let (expression, _) = index_assignment.expression.accept(self);
+        let (value, _) = index_assignment.value.accept(self);
+
+        if let Value::List(list) = list {
+            if let Value::Number(number) = expression {
+                let number = (*number as i64) as usize;
+                list.borrow_mut()[number] = value.clone();
+                return (value, false);
+            }
+            panic!("Must use number to index into list type");
+        }
+
+        panic!("Must index into list type");
     }
 }

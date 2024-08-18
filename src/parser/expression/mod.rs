@@ -6,6 +6,7 @@ pub mod equality;
 pub mod factor;
 pub mod if_expression;
 pub mod index;
+pub mod index_assignment;
 pub mod list;
 pub mod map_index;
 pub mod map_index_assignment;
@@ -23,6 +24,7 @@ pub use equality::Equality;
 pub use factor::Factor;
 pub use if_expression::IfExpression;
 pub use index::Index;
+pub use index_assignment::IndexAssignment;
 pub use list::List;
 pub use map_index::MapIndex;
 pub use map_index_assignment::MapIndexAssignment;
@@ -54,6 +56,7 @@ pub enum Expression {
     Record(Box<Record>),
     MapIndex(Box<MapIndex>),
     MapIndexAssignment(Box<MapIndexAssignment>),
+    IndexAssignment(Box<IndexAssignment>),
 }
 
 impl Accept for Expression {
@@ -77,6 +80,7 @@ impl Accept for Expression {
             Expression::MapIndexAssignment(map_index_assignment) => {
                 map_index_assignment.accept(visitor)
             }
+            Expression::IndexAssignment(index_assignment) => index_assignment.accept(visitor),
         }
     }
 }
